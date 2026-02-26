@@ -1,26 +1,33 @@
 # Energy Insight Lite
 
-**Product name: Lite.** Standalone landing page for the Lite product: instant energy profile + locked full result (unlock $199). No build step, vanilla HTML/CSS/JS.
+**Product name: Lite.** Standalone landing page for the Lite product: instant energy profile + locked full result; unlock via Stripe ($199). Vanilla HTML/CSS/JS + Netlify Functions for checkout.
 
-- **Single file:** `index.html` (embedded CSS + JS)
-- **Product:** Energy Insight (Lite), AUD $199 one-off
-- **Flow:** 2-minute check (6 steps) → free energy profile → unlock CTA (payment placeholder)
+- **Front:** `index.html` (embedded CSS + JS)
+- **Back:** `netlify/functions` — createLiteCheckoutSession, verifyLitePayment, stripeWebhook
+- **Product:** Energy Insight (Lite), AUD $199 one-off (credit toward Pro)
+- **Flow:** 2-minute check → free preview → Unlock $199 → Stripe Checkout → return → verify → show full result
 
 ## Run locally
 
-Open `index.html` in a browser, or use any static server:
+Static only: open `index.html` in a browser. With Stripe/DB (Netlify):
 
 ```bash
-npx serve .
-# or: python3 -m http.server 8080
+npm install
+netlify dev
 ```
 
-## Deploy
+## Deploy (Netlify)
 
-Push to a repo and deploy as static site (Netlify, Vercel, GitHub Pages, etc.). No build required.
-
-**Console:** If you see `WebSocket connection to 'ws://localhost:8081/' failed` — that comes from Netlify Dev / live-reload (or a browser extension), not from this repo. Safe to ignore on production.
+1. Connect repo; publish directory: `.`; functions: `netlify/functions`.
+2. Env vars (same DB as Pro/admin):
+   - `NEON_DATABASE_URL` — Postgres (run migration 004 on this DB)
+   - `STRIPE_SECRET_KEY`
+   - `STRIPE_WEBHOOK_SECRET` — from Stripe Dashboard → Webhooks (endpoint: `/.netlify/functions/stripeWebhook`)
+   - `LITE_SITE_URL` — deployed Lite URL (e.g. `https://lite.example.com`)
+   - Optional: `STRIPE_PRICE_ID_LITE_199` — or price is created inline ($199 AUD)
+3. Run migration 004 (in the Pro/landing-page repo):  
+   `psql "$NEON_DATABASE_URL" -f migrations/004_advisory_lite_payment.sql`
 
 ## Tracking
 
-Events are logged to `console` and `window.__events` for QA. No GA4 in this repo.
+Events: `page_open`, `lite_unlock_click`, `lite_checkout_redirect`, `lite_payment_verified` (and existing snapshot events). Logged to `console` and `window.__events`.

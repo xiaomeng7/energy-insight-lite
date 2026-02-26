@@ -614,7 +614,7 @@
             <p class="locked-line">EV impact note (locked)</p>
           </div>
           <div class="unlock-overlay">
-            <button type="button" class="btn" id="unlock-btn">See the actual savings numbers — $199</button>
+            <button type="button" class="btn" id="unlock-btn">Unlock full results — $199 (credited if you proceed with Pro)</button>
           </div>
         </div>
         <p class="debug-reset hidden" id="debug-reset"><a href="#" id="reset-unlock-link">Reset unlock (for testing)</a></p>
@@ -716,6 +716,7 @@
 
       function isUnlocked() {
         try {
+          if (typeof localStorage !== 'undefined' && localStorage.getItem('lite_paid') === 'true') return true;
           if (typeof URLSearchParams !== 'undefined' && window.location.search) {
             var p = new URLSearchParams(window.location.search);
             if (p.get('unlocked') === '1') return true;
@@ -802,8 +803,10 @@
         var showCapacityAdvisory = result.allElectric || result.evPlan || result.bigLoads.indexOf('ducted_ac') !== -1;
 
         var html = '';
+        var paidUnlock = typeof localStorage !== 'undefined' && localStorage.getItem('lite_paid') === 'true';
         html += '<div class="report-card report-header">';
         html += '<h2>Energy Decision Summary (Lite)</h2>';
+        if (paidUnlock) html += '<p class="payment-confirmed" style="margin:0.5rem 0 0;font-size:0.9375rem;color:var(--muted);">Unlocked. Credit will apply if you proceed with Pro.</p>';
         html += '<p class="subline">Generated for: ' + escapeHtml(email) + ' · Adelaide, SA · ' + today + '</p>';
         html += '<p class="badges">Independent advice · No installation · No commissions</p>';
         html += '</div>';
@@ -846,7 +849,7 @@
         html += '<div class="next-step-card"><h4>Before committing to solar, confirm the numbers are correct.</h4>';
         html += '<p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Energy Insight Pro validates whether solar is financially right for your specific home. We measure real load behaviour, review capacity limits, and model tariff impact — so you don\'t rely on installer estimates alone.</p>';
         html += '<ul><li>Confirm if solar truly makes sense</li><li>Validate correct system sizing</li><li>Identify hidden capacity constraints</li><li>Provide written independent recommendation</li></ul>';
-        html += '<button type="button" class="btn" id="pro-cta-btn">Book a 15-minute advisory call</button>';
+        html += '<button type="button" class="btn" id="pro-cta-btn">Confirm this with a 15-minute advisory call</button>';
         html += '<p class="credit-note" style="margin-top:0.5rem;">$199 credited toward Pro</p></div>';
         html += '</div>';
 
@@ -1109,14 +1112,65 @@
         document.getElementById('assumptions-body').innerHTML = '<ul><li>Tariff: $0.35/kWh (estimate).</li><li>System: 6.6kW, ~9,000 kWh/year production.</li></ul>';
         resultsSection.classList.add('visible');
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        if (isUnlocked()) renderFullResult();
+        // Always show locked state first; full result only after unlock (modal) in this session
+        var fullEl = document.getElementById('full-result');
+        var lockedEl = document.getElementById('locked-box');
+        if (fullEl) fullEl.classList.add('hidden');
+        if (lockedEl) lockedEl.classList.remove('hidden');
       });
 
+      function getLiteApiBase() {
+        return window.location.origin;
+      }
+      function buildLiteSnapshot() {
+        var res = calcFullResult();
+        return {
+          decisionLabel: res ? res.outlook : null,
+          savingsLow: res ? res.savingsLow : null,
+          savingsHigh: res ? res.savingsHigh : null,
+          paybackLow: res ? res.paybackLow : null,
+          paybackHigh: res ? res.paybackHigh : null,
+          annualBillBand: formData.annualBillBand || null,
+          allElectric: res ? res.allElectric : null,
+          hasEv: res ? res.evPlan : null,
+          formData: formData,
+          timestamp: new Date().toISOString()
+        };
+      }
       if (unlockBtn) {
         unlockBtn.addEventListener('click', function() {
-          try { localStorage.setItem('lite_unlocked', 'true'); } catch (err) {}
-          track('unlock_click', {});
-          if (unlockModal) { unlockModal.classList.add('visible'); unlockModal.setAttribute('aria-hidden', 'false'); }
+          var email = (formData.email || (emailInput ? emailInput.value : '')).trim();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (emailError) { emailError.classList.add('visible'); emailError.textContent = 'Please enter your email to unlock (same as in the form above).'; }
+            if (emailInput) { emailInput.focus(); }
+            track('lite_unlock_click', { source: 'lite_paid', email_present: false });
+            return;
+          }
+          track('lite_unlock_click', { source: 'lite_paid', email_present: true, decisionLabel: calcFullResult() ? calcFullResult().outlook : null });
+          var payload = { name: (formData.name || '').trim(), email: email, phone: (formData.phone || '').trim(), liteSnapshot: buildLiteSnapshot() };
+          unlockBtn.disabled = true;
+          unlockBtn.textContent = 'Redirecting…';
+          fetch(getLiteApiBase() + '/.netlify/functions/createLiteCheckoutSession', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+            .then(function(result) {
+              if (result.ok && result.data.url) {
+                try { sessionStorage.setItem('lite_formData', JSON.stringify(formData)); } catch (e) {}
+                track('lite_checkout_redirect', { source: 'lite_paid' });
+                window.location.href = result.data.url;
+              } else {
+                unlockBtn.disabled = false;
+                unlockBtn.textContent = 'Unlock full results — $199 (credited if you proceed with Pro)';
+                alert(result.data && result.data.error ? result.data.error : 'Could not start checkout. Please try again.');
+              }
+            })
+            .catch(function() {
+              unlockBtn.disabled = false;
+              unlockBtn.textContent = 'Unlock full results — $199 (credited if you proceed with Pro)';
+              alert('Network error. Please try again.');
+            });
         });
       }
 
@@ -1128,7 +1182,12 @@
         }
         resetUnlockLink.addEventListener('click', function(e) {
           e.preventDefault();
-          try { localStorage.removeItem('lite_unlocked'); } catch (err) {}
+          try {
+            localStorage.removeItem('lite_unlocked');
+            localStorage.removeItem('lite_paid');
+            localStorage.removeItem('lite_paid_at');
+            sessionStorage.removeItem('lite_formData');
+          } catch (err) {}
           window.location.reload();
         });
       }
@@ -1170,6 +1229,31 @@
       });
 
       updateProgress();
+
+      (function handleCheckoutReturn() {
+        var p = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        if (!p || p.get('checkout') !== 'success') return;
+        var sessionId = p.get('session_id');
+        if (!sessionId) return;
+        fetch(window.location.origin + '/.netlify/functions/verifyLitePayment?session_id=' + encodeURIComponent(sessionId))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || data.paid !== true) return;
+            try {
+              localStorage.setItem('lite_paid', 'true');
+              localStorage.setItem('lite_paid_at', new Date().toISOString());
+              var stored = sessionStorage.getItem('lite_formData');
+              if (stored) { try { var o = JSON.parse(stored); if (o && typeof o === 'object') formData = o; } catch (e) {} }
+            } catch (e) {}
+            track('lite_payment_verified', { source: 'lite_paid', creditAmount: data.creditAmount });
+            if (window.history && window.history.replaceState) window.history.replaceState({}, '', window.location.pathname || '/');
+            if (resultsSection) resultsSection.classList.add('visible');
+            renderFullResult();
+            var el = document.getElementById('free-profile');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          })
+          .catch(function() {});
+      })();
       }
 
       if (document.readyState === 'loading') {

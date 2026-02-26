@@ -1,0 +1,10 @@
+{
+  "name": "energy-insight-lite",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@netlify/functions": "^2.8.2",
+    "@neondatabase/serverless": "^0.10.4",
+    "stripe": "^17.4.0"
+  }
+}
