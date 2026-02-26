@@ -871,16 +871,22 @@
             var jsonStr = JSON.stringify(snapshot);
             var base64 = btoa(unescape(encodeURIComponent(jsonStr)));
             var base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-            var name = (formData.name || '').trim();
-            var email = (formData.email || '').trim();
-            var phone = (formData.phone || '').trim();
+            var nameEl = document.getElementById('name');
+            var emailEl = document.getElementById('email');
+            var phoneEl = document.getElementById('phone');
+            var name = ((nameEl && nameEl.value) || formData.name || '').trim();
+            var email = ((emailEl && emailEl.value) || formData.email || '').trim();
+            var phone = ((phoneEl && phoneEl.value) || formData.phone || '').trim();
+            var billRangeMap = { 'under_2000': 'under $2k', '2000_3000': '$2–3k', '3000_4000': '$3–4k', '4000_5000': '$4k+', '5000_plus': '$4k+' };
+            var billRange = billRangeMap[formData.annualBillBand] || '';
             var q = ['src=lite', 'lite=' + encodeURIComponent(base64url)];
             if (name) q.push('name=' + encodeURIComponent(name));
             if (email) q.push('email=' + encodeURIComponent(email));
             if (phone) q.push('phone=' + encodeURIComponent(phone));
+            if (billRange) q.push('bill_range=' + encodeURIComponent(billRange));
             var finalUrl = 'https://advisory.bhtechnology.com.au/?' + q.join('&') + '#request-review';
             track('pro_cta_click', { source: 'lite_upgrade', hasEmail: !!email, decisionLabel: res ? res.outlook : null, timestamp: new Date().toISOString() });
-            window.location.href = finalUrl;
+            window.open(finalUrl, '_blank', 'noopener,noreferrer');
           });
         }
         full.querySelectorAll('.accordion-head').forEach(function(btn) {
