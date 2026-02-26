@@ -63,6 +63,7 @@
     input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
     input.error { border-color: #dc3545; }
     label { display: block; margin-bottom: .25rem; font-weight: 500; }
+    .muted { color: var(--muted); font-size: .9375rem; }
     .hero {
       padding: 2rem 0 2.5rem;
       text-align: center;
@@ -115,18 +116,19 @@
     .option-group { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
     .option-btn {
       padding: .5rem 1rem;
-      border: 2px solid var(--border);
-      background: var(--card);
+      border: 2px solid #adb5bd;
+      background: #fff;
+      color: var(--text);
       border-radius: var(--radius);
       cursor: pointer;
       font: inherit;
       transition: border-color .2s, background .2s;
     }
-    .option-btn:hover { border-color: var(--accent); }
-    .option-btn.selected { border-color: var(--accent); background: rgba(13, 110, 253, .1); }
+    .option-btn:hover { border-color: var(--accent); background: #f0f4ff; }
+    .option-btn.selected { border-color: var(--accent); background: rgba(13, 110, 253, .12); color: var(--text); }
     .option-btn[data-multi] { margin: .25rem; }
-    .checkbox-group label { display: flex; align-items: center; gap: .5rem; cursor: pointer; margin-bottom: .5rem; font-weight: normal; }
-    .checkbox-group input[type="checkbox"] { width: auto; margin: 0; }
+    .checkbox-group label { display: flex; align-items: center; gap: .5rem; cursor: pointer; margin-bottom: .5rem; font-weight: normal; color: var(--text); }
+    .checkbox-group input[type="checkbox"] { width: auto; margin: 0; accent-color: var(--accent); }
     .results-section { display: none; padding: 2rem 0; }
     .results-section.visible { display: block; }
     .profile-card {
@@ -196,25 +198,27 @@
     .comparison-table th, .comparison-table td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
     .comparison-table th { background: var(--bg); font-weight: 600; }
     .comparison-table tr:last-child td { border-bottom: none; }
-    .faq-list { margin: 0; padding: 0; list-style: none; }
+    .faq-list { margin: 0; padding: 0; list-style: none; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
     .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item:last-child { border-bottom: none; }
     .faq-q {
       width: 100%;
-      padding: 1rem 0;
+      padding: 1rem 1.25rem;
       text-align: left;
       font: inherit;
       font-weight: 500;
-      background: none;
+      color: var(--text);
+      background: #fff;
       border: none;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .faq-q:hover { color: var(--accent); }
+    .faq-q:hover { color: var(--accent); background: #f8f9fa; }
     .faq-q::after { content: "+"; font-size: 1.25rem; }
     .faq-item.open .faq-q::after { content: "−"; }
-    .faq-a { padding: 0 0 1rem; color: var(--muted); display: none; }
+    .faq-a { padding: 0 1.25rem 1rem; margin: 0; color: var(--text); font-weight: normal; display: none; }
     .faq-item.open .faq-a { display: block; }
     footer {
       padding: 2rem 0;
@@ -274,7 +278,7 @@
         <h1>See how much a standard 6.6kW solar system could save you each year</h1>
         <p class="hero-sub">Answer 5 quick questions and get an instant preview of your energy profile. Unlock the full result for $199.</p>
         <div class="hero-cta">
-          <a href="#form" class="btn" id="cta-start">Start 2-minute check</a>
+          <a href="#form-section" class="btn" id="cta-start">Start 2-minute check</a>
           <a href="#how-it-works" class="btn btn-secondary">How it works</a>
         </div>
       </div>
@@ -576,7 +580,8 @@
         return Array.prototype.map.call(checkboxes, function(c) { return c.value; });
       }
 
-      document.getElementById('cta-start').addEventListener('click', function() {
+      document.getElementById('cta-start').addEventListener('click', function(e) {
+        e.preventDefault();
         document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
         track('snapshot_start', {});
       });
