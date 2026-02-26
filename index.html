@@ -438,6 +438,7 @@
       color: #7d6e00;
     }
     .full-result .next-step-card { background: #f8f9fa; padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); }
+    .full-result .next-step-card a.btn { color: #fff; text-decoration: none; }
     .full-result .next-step-card h4 { margin: 0 0 0.5rem; font-size: 1rem; }
     .full-result .next-step-card ul { margin: 0 0 0.75rem; padding-left: 1.25rem; font-size: .9375rem; }
     .full-result .debug-reset { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
@@ -843,10 +844,11 @@
         if (showCapacityAdvisory) {
           html += '<div class="advisory-note" style="grid-column:1/-1;">&#9888; System capacity should be reviewed before installation.</div>';
         }
-        html += '<div class="next-step-card"><h4>Recommended next step before installation</h4><p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Before committing $15,000–$30,000, most homeowners benefit from validating system capacity and tariff strategy.</p><ul><li>On-site load measurement</li><li>Switchboard &amp; capacity review</li><li>Tariff and export optimisation modelling</li><li>Written independent recommendation</li></ul><button type="button" class="btn" disabled>Book a 15-minute advisory call</button><p class="credit-note" style="margin-top:0.5rem;">Your $199 credit will be applied.</p></div>';
-        if (result.showReadiness) {
-          html += '<div class="next-step-card"><h4>Check Electrical Readiness</h4><ul><li>Capacity and safety check before upgrades</li><li>Compliance review</li></ul><button type="button" class="btn btn-secondary" disabled>Check readiness</button></div>';
-        }
+        html += '<div class="next-step-card"><h4>Before committing to solar, confirm the numbers are correct.</h4>';
+        html += '<p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Energy Insight Pro validates whether solar is financially right for your specific home. We measure real load behaviour, review capacity limits, and model tariff impact — so you don\'t rely on installer estimates alone.</p>';
+        html += '<ul><li>Confirm if solar truly makes sense</li><li>Validate correct system sizing</li><li>Identify hidden capacity constraints</li><li>Provide written independent recommendation</li></ul>';
+        html += '<a href="/book-call.html" class="btn">Book a 15-minute advisory call</a>';
+        html += '<p class="credit-note" style="margin-top:0.5rem;">$199 credited toward Pro</p></div>';
         html += '</div>';
 
         full.innerHTML = html;
