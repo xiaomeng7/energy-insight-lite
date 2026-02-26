@@ -429,6 +429,14 @@
     .full-result .decision-outlook .label { font-weight: 600; margin-bottom: 0.25rem; }
     .full-result .next-steps-grid { display: grid; gap: 1rem; }
     @media (min-width: 600px) { .full-result .next-steps-grid { grid-template-columns: 1fr 1fr; } }
+    .full-result .advisory-note {
+      background: #fef9e7;
+      border: 1px solid #e8d88a;
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.9375rem;
+      color: #7d6e00;
+    }
     .full-result .next-step-card { background: #f8f9fa; padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); }
     .full-result .next-step-card h4 { margin: 0 0 0.5rem; font-size: 1rem; }
     .full-result .next-step-card ul { margin: 0 0 0.75rem; padding-left: 1.25rem; font-size: .9375rem; }
@@ -742,7 +750,7 @@
         var paybackLow = SYSTEM_COST / savingsHigh;
         var paybackMid = (paybackLow + paybackHigh) / 2;
         var roundHalf = function(n) { return Math.round(n * 2) / 2; };
-        var outlook = paybackMid <= 7 ? 'Recommended' : paybackMid <= 10 ? 'Conditional' : 'Not recommended';
+        var outlook = paybackMid <= 7 ? 'Financially reasonable' : paybackMid <= 10 ? 'Needs deeper review' : 'Financially marginal';
         var outlookIcon = paybackMid <= 7 ? '✓' : paybackMid <= 10 ? '!' : '×';
         var daytime = formData.daytimeAtHome === 'yes';
         var allElectric = formData.allElectricNoGas === 'yes';
@@ -788,9 +796,10 @@
         var p = result.profile;
         var email = (formData.email || '').trim() || '—';
         var today = new Date().toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
-        var outlookRationale = result.outlook === 'Recommended' ? 'Payback is within a typical range for solar in SA.' : result.outlook === 'Conditional' ? 'Payback is longer; review tariff and usage to optimise.' : 'Payback may be long; consider whether solar fits your timeline.';
+        var outlookRationale = result.outlook === 'Financially reasonable' ? 'Payback falls within a typical range for solar in SA.' : result.outlook === 'Needs deeper review' ? 'Payback is longer; tariff and usage details may affect the outcome.' : 'Payback may be extended; on-site assessment can clarify.';
         if (result.daytime) outlookRationale += ' Daytime use supports self-consumption.';
         if (result.allElectric) outlookRationale += ' All-electric homes often benefit more.';
+        var showCapacityAdvisory = result.allElectric || result.evPlan || result.bigLoads.indexOf('ducted_ac') !== -1;
 
         var html = '';
         html += '<div class="report-card report-header">';
@@ -805,6 +814,9 @@
         html += '<p class="label">Estimated payback</p>';
         html += '<p class="big-number">' + formatYears(result.paybackLow) + ' – ' + formatYears(result.paybackHigh) + '</p>';
         html += '<p class="footnote">Based on a standard 6.6kW system and typical SA assumptions.</p>';
+        html += '<h3 style="margin-top:1.25rem;font-size:1rem;">What this estimate does NOT include</h3>';
+        html += '<ul style="margin:0.5rem 0 0;padding-left:1.25rem;font-size:0.9375rem;"><li>Switchboard capacity assessment</li><li>Phase load balancing</li><li>Detailed tariff modelling</li><li>EV charging load impact</li><li>Future electrification expansion</li></ul>';
+        html += '<p class="footnote" style="margin-top:0.75rem;">For some homes, these factors materially change the financial outcome.</p>';
         html += '</div>';
 
         html += '<div class="report-card decision-outlook">';
@@ -828,7 +840,10 @@
         html += '<p class="footnote">For battery decisions, Pro is recommended.</p></div>';
 
         html += '<div class="next-steps-grid">';
-        html += '<div class="next-step-card"><h4>Upgrade to Pro Advisory (credit applied)</h4><ul><li>On-site load measurement</li><li>Switchboard capacity review</li><li>More accurate modelling</li></ul><button type="button" class="btn" disabled>Book Pro Advisory</button><p class="credit-note" style="margin-top:0.5rem;">Your $199 credit will be applied.</p></div>';
+        if (showCapacityAdvisory) {
+          html += '<div class="advisory-note" style="grid-column:1/-1;">&#9888; System capacity should be reviewed before installation.</div>';
+        }
+        html += '<div class="next-step-card"><h4>Recommended next step before installation</h4><p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Before committing $15,000–$30,000, most homeowners benefit from validating system capacity and tariff strategy.</p><ul><li>On-site load measurement</li><li>Switchboard &amp; capacity review</li><li>Tariff and export optimisation modelling</li><li>Written independent recommendation</li></ul><button type="button" class="btn" disabled>Book a 15-minute advisory call</button><p class="credit-note" style="margin-top:0.5rem;">Your $199 credit will be applied.</p></div>';
         if (result.showReadiness) {
           html += '<div class="next-step-card"><h4>Check Electrical Readiness</h4><ul><li>Capacity and safety check before upgrades</li><li>Compliance review</li></ul><button type="button" class="btn btn-secondary" disabled>Check readiness</button></div>';
         }
