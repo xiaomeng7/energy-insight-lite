@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!--
+  CHANGELOG (refactor): Facebook emotional scroll → 2-minute check → free preview → paid unlock → full result.
+  - SECTION 0: Full-screen hero (100vh) with bill-photo placeholder, dark overlay, emotional copy; CTA smooth-scroll to bridge. No $199.
+  - SECTION 1: Bridge (emotion→logic) with 3 bullets; CTA to 2-minute check.
+  - SECTION 2: Multi-step form unchanged (≤7 questions); inline errors on Next when required missing; progress Step X of Y; on complete scroll to results.
+  - SECTION 3: (A) Free preview: usage band + brief Assumptions (preview) accordion, bridge sentence only — no savings/payback. (B) Locked card: "See your estimated annual savings" with blurred placeholders; Unlock opens "Payment coming next" modal; on close → render full result. (C) Full result: 7-block report when unlocked (URL ?unlocked=1 or localStorage lite_unlocked).
+  - Unlock: click sets localStorage, opens modal; closing modal renders full result (no Stripe).
+  - Tracking: page_open, hero_cta_click, bridge_cta_click, snapshot_start, question_view, question_answer, snapshot_complete, unlock_click, unlock_modal_submit.
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -65,14 +74,46 @@
     input.error { border-color: #dc3545; }
     label { display: block; margin-bottom: .25rem; font-weight: 500; }
     .muted { color: var(--muted); font-size: .9375rem; }
-    .hero {
-      padding: 2rem 0 2.5rem;
+    /* SECTION 0 — Hero (full-screen, emotional) */
+    .section-0 {
+      --hero-bg-image: url('hero-bill.png');
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
       text-align: center;
     }
-    .hero-sub { color: var(--muted); margin-bottom: 0.5rem; font-size: 1.05rem; }
-    .hero-price-note { font-size: 0.9rem; color: #777; margin: 0 0 1.5rem; font-weight: normal; }
-    .hero-cta { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 1.5rem; }
-    .hero-cta .btn { margin: 0 .25rem 0 0; }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--hero-bg-image, linear-gradient(135deg, #2c3e50 0%, #1a252f 50%, #0d1117 100%));
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.48);
+    }
+    .section-0 .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .section-0 h1 { color: #fff; font-size: clamp(1.75rem, 5vw, 2.5rem); margin-bottom: 1rem; line-height: 1.25; }
+    .section-0 .hero-p1 { color: rgba(255,255,255,.95); font-size: 1.1rem; margin-bottom: 0.75rem; }
+    .section-0 .hero-p2 { color: rgba(255,255,255,.85); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5; }
+    .section-0 .hero-cta { margin-top: 1.5rem; }
+    .section-0 .hero-cta .btn { background: #fff; color: var(--text); }
+    .section-0 .hero-cta .btn:hover { background: #f0f0f0; }
+    /* SECTION 1 — Bridge */
+    .section-1 { background: #fff; padding: 3rem 1rem; }
+    .section-1 .container { max-width: 520px; }
+    .section-1 ul { margin: 0 0 1.5rem; padding-left: 1.25rem; font-size: 1.05rem; line-height: 1.7; color: var(--text); }
+    .section-1 .bridge-cta { margin-top: 1.5rem; }
     .section {
       padding: 2rem 0;
       border-top: 1px solid var(--border);
@@ -180,6 +221,7 @@
       user-select: none;
       min-height: 120px;
     }
+    .locked-box .locked-line { margin: 0.5rem 0; }
     .locked-box .unlock-overlay {
       position: absolute;
       inset: 0;
@@ -247,6 +289,7 @@
     }
     .modal-backdrop.visible { display: flex; }
     .modal {
+      position: relative;
       background: var(--card);
       padding: 1.5rem;
       border-radius: var(--radius);
@@ -275,48 +318,74 @@
     @media (min-width: 600px) {
       .steps { grid-template-columns: repeat(3, 1fr); }
     }
+
+    /* FULL RESULT STYLES */
+    .hidden { display: none !important; }
+    .full-result { margin-bottom: 1.5rem; }
+    .full-result .report-card {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--border);
+    }
+    .full-result .report-header {
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .full-result .report-header h2 { margin: 0 0 0.25rem; font-size: 1.25rem; }
+    .full-result .report-header .subline { font-size: .875rem; color: var(--muted); }
+    .full-result .report-header .badges { font-size: .75rem; color: var(--muted); margin-top: 0.5rem; }
+    .full-result .hero-summary .big-number { font-size: 1.75rem; font-weight: 700; color: var(--accent); margin: 0.25rem 0; }
+    .full-result .hero-summary .label { font-size: .875rem; color: var(--muted); }
+    .full-result .hero-summary .footnote { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
+    .full-result .decision-outlook { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .full-result .decision-outlook .icon { font-size: 1.5rem; line-height: 1; }
+    .full-result .decision-outlook .label { font-weight: 600; margin-bottom: 0.25rem; }
+    .full-result .next-steps-grid { display: grid; gap: 1rem; }
+    @media (min-width: 600px) { .full-result .next-steps-grid { grid-template-columns: 1fr 1fr; } }
+    .full-result .next-step-card { background: #f8f9fa; padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); }
+    .full-result .next-step-card h4 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .full-result .next-step-card ul { margin: 0 0 0.75rem; padding-left: 1.25rem; font-size: .9375rem; }
+    .full-result .debug-reset { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
   </style>
 </head>
 <body>
   <main>
-    <section class="hero" id="hero">
-      <div class="container">
-        <h1>See how much a standard 6.6kW solar system could save you each year</h1>
-        <p class="hero-sub">Answer 5 quick questions and get an instant preview of your energy profile.</p>
-        <p class="hero-price-note">Free preview · Full decision result $199 · Credited toward Pro</p>
+    <!-- SECTION 0 — Hero (emotional, full-screen). Background: hero-bill.png (bill + notes + currency). -->
+    <section class="section-0" id="section-0">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <h1>Electricity bills rising again?</h1>
+        <p class="hero-p1">You're not alone. Many Adelaide households have seen sharp increases.</p>
+        <p class="hero-p2">Before spending $8,000–$15,000 on solar or battery, check whether it actually makes financial sense for your home.</p>
         <div class="hero-cta">
-          <a href="#form-section" class="btn" id="cta-start">Start 2-minute check</a>
-          <a href="#how-it-works" class="btn btn-secondary">How it works</a>
+          <button type="button" class="btn" id="hero-cta">See if it makes sense ↓</button>
         </div>
       </div>
     </section>
 
-    <section class="section" id="how-it-works">
+    <!-- SECTION 1 — Bridge (emotion → logic) -->
+    <section class="section-1" id="section-1">
       <div class="container">
-        <h2 class="section-title">How it works</h2>
-        <div class="steps">
-          <div class="step-card">
-            <div class="step-num">1</div>
-            <h3>Answer 5 questions</h3>
-            <p>Your bill range, when you're home, and major appliances.</p>
-          </div>
-          <div class="step-card">
-            <div class="step-num">2</div>
-            <h3>Instant preview</h3>
-            <p>See your estimated usage band and what it means—free.</p>
-          </div>
-          <div class="step-card">
-            <div class="step-num">3</div>
-            <h3>Unlock full financial result ($199, credited if you upgrade)</h3>
-            <p>Get the full result with savings and recommendations.</p>
-          </div>
+        <ul>
+          <li>Electricity prices are rising.</li>
+          <li>Solar can help — but not equally for every home.</li>
+          <li>The real question: does it make financial sense for you?</li>
+        </ul>
+        <div class="bridge-cta">
+          <button type="button" class="btn" id="bridge-cta">Start the 2-minute check</button>
         </div>
       </div>
     </section>
 
+    <!-- SECTION 2 — 2-minute check -->
     <section class="section" id="form-section">
       <div class="container">
-        <h2 class="section-title">Your energy snapshot</h2>
+        <h2 class="section-title">2-minute check</h2>
         <div class="progress-wrap">
           <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
             <div class="progress-fill" id="progress-fill"></div>
@@ -334,6 +403,7 @@
               <button type="button" class="option-btn" data-value="4000_5000">$4,000–$5,000</button>
               <button type="button" class="option-btn" data-value="5000_plus">$5,000+</button>
             </div>
+            <p class="error-msg" id="error-1">Please select a bill range.</p>
             <input type="hidden" name="annualBillBand" id="annualBillBand" value="">
             <div class="form-nav">
               <span></span>
@@ -347,6 +417,7 @@
               <button type="button" class="option-btn" data-value="yes">Yes</button>
               <button type="button" class="option-btn" data-value="no">No</button>
             </div>
+            <p class="error-msg" id="error-2">Please select Yes or No.</p>
             <input type="hidden" name="daytimeAtHome" id="daytimeAtHome" value="">
             <div class="form-nav">
               <button type="button" class="btn btn-secondary" id="back-2">Back</button>
@@ -359,6 +430,7 @@
               <button type="button" class="option-btn" data-value="yes">Yes</button>
               <button type="button" class="option-btn" data-value="no">No</button>
             </div>
+            <p class="error-msg" id="error-3">Please select Yes or No.</p>
             <input type="hidden" name="allElectricNoGas" id="allElectricNoGas" value="">
             <div class="form-nav">
               <button type="button" class="btn btn-secondary" id="back-3">Back</button>
@@ -385,6 +457,7 @@
               <button type="button" class="option-btn" data-value="yes">Yes</button>
               <button type="button" class="option-btn" data-value="no">No</button>
             </div>
+            <p class="error-msg" id="error-5">Please select Yes or No.</p>
             <input type="hidden" name="evPlan" id="evPlan" value="">
             <div class="form-nav">
               <button type="button" class="btn btn-secondary" id="back-5">Back</button>
@@ -410,31 +483,39 @@
       </div>
     </section>
 
+    <!-- SECTION 3 — Results (free preview + locked / full result) -->
     <section class="results-section" id="results-section">
       <div class="container">
         <h2 class="section-title">Your results</h2>
+        <!-- A) FREE PREVIEW (always visible after completion) -->
         <div class="profile-card" id="free-profile">
           <h3>Your energy profile</h3>
           <p class="usage-band" id="usage-band"></p>
           <p id="what-this-means"></p>
           <div class="accordion" id="assumptions-accordion">
             <div class="accordion-item">
-              <button type="button" class="accordion-head" aria-expanded="false">Assumptions used</button>
+              <button type="button" class="accordion-head" aria-expanded="false">Assumptions (preview)</button>
               <div class="accordion-body" id="assumptions-body"></div>
             </div>
           </div>
         </div>
-        <div class="locked-box">
+        <!-- FULL RESULT (visible when unlocked) -->
+        <div id="full-result" class="full-result hidden" aria-live="polite"></div>
+        <!-- B) LOCKED CARD (visible when NOT unlocked) -->
+        <div class="locked-box" id="locked-box">
           <div class="blur-content" aria-hidden="true">
-            <p>Full result: annual savings estimate, payback, and tailored recommendations appear here after unlock.</p>
+            <p class="locked-line">Estimated annual savings: $X–$Y (locked)</p>
+            <p class="locked-line">Estimated payback: A–B years (locked)</p>
+            <p class="locked-line">Battery direction (locked)</p>
+            <p class="locked-line">EV impact note (locked)</p>
           </div>
           <div class="unlock-overlay">
-            <p><strong>Unlock Full Decision Result – $199</strong></p>
-            <button type="button" class="btn" id="unlock-btn">Unlock full result – $199</button>
-            <p class="credit-note">One-off payment. Credit card secure. Better Home Technology Pty Ltd.</p>
+            <p><strong>See your estimated annual savings</strong></p>
+            <button type="button" class="btn" id="unlock-btn">Unlock full decision result — $199</button>
             <p class="credit-emphasis">$199 credited toward Pro or Essential within 30 days.</p>
           </div>
         </div>
+        <p class="debug-reset hidden" id="debug-reset"><a href="#" id="reset-unlock-link">Reset unlock (for testing)</a></p>
         <h3 style="margin-top: 2rem;">Lite vs Pro</h3>
         <table class="comparison-table" aria-label="Comparison Lite vs Pro">
           <thead>
@@ -520,7 +601,7 @@
   <div class="modal-backdrop" id="unlock-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
     <div class="modal">
       <button type="button" class="modal-close" id="modal-close" aria-label="Close">&times;</button>
-      <h3 id="modal-title">Payment step coming next</h3>
+      <h3 id="modal-title">Payment coming next</h3>
       <p>The full payment flow is being added. You can request an email when it's ready.</p>
       <div class="checkbox-group">
         <label><input type="checkbox" id="email-when-ready" name="emailWhenReady"> Email me when it's ready</label>
@@ -535,6 +616,155 @@
       window.__events = window.__events || [];
       var BAND_MIDPOINTS = { 'under_2000': 1500, '2000_3000': 2500, '3000_4000': 3500, '4000_5000': 4500, '5000_plus': 6000 };
       var TARIFF = 0.35;
+      var PRODUCTION = 9000;
+      var FIT = 0.08;
+      var SYSTEM_COST = 8000;
+
+      function isUnlocked() {
+        try {
+          if (typeof URLSearchParams !== 'undefined' && window.location.search) {
+            var p = new URLSearchParams(window.location.search);
+            if (p.get('unlocked') === '1') return true;
+          }
+          return (typeof localStorage !== 'undefined' && localStorage.getItem('lite_unlocked') === 'true');
+        } catch (e) { return false; }
+      }
+
+      function selfConsumptionRate(data) {
+        var day = data.daytimeAtHome === 'yes';
+        var allElec = data.allElectricNoGas === 'yes';
+        var big = data.bigLoads || [];
+        var rate = 0.40;
+        if (day && allElec) rate = 0.65;
+        else if (day) rate = 0.55;
+        else if (allElec) rate = 0.50;
+        if (big.indexOf('ducted_ac') !== -1 || big.indexOf('electric_hot_water') !== -1) rate = Math.min(0.70, rate + 0.05);
+        return rate;
+      }
+
+      function calcFullResult() {
+        var profile = calcProfile();
+        if (!profile) return null;
+        var sc = selfConsumptionRate(formData);
+        var annualKwh = profile.annualKwh;
+        var selfUse = Math.min(PRODUCTION * sc, annualKwh);
+        var exportKwh = Math.max(0, PRODUCTION - selfUse);
+        var annualSavings = selfUse * TARIFF + exportKwh * FIT;
+        var savingsLow = Math.round(annualSavings * 0.9);
+        var savingsHigh = Math.round(annualSavings * 1.1);
+        var paybackHigh = SYSTEM_COST / savingsLow;
+        var paybackLow = SYSTEM_COST / savingsHigh;
+        var paybackMid = (paybackLow + paybackHigh) / 2;
+        var roundHalf = function(n) { return Math.round(n * 2) / 2; };
+        var outlook = paybackMid <= 7 ? 'Recommended' : paybackMid <= 10 ? 'Conditional' : 'Not recommended';
+        var outlookIcon = paybackMid <= 7 ? '✓' : paybackMid <= 10 ? '!' : '×';
+        var daytime = formData.daytimeAtHome === 'yes';
+        var allElectric = formData.allElectricNoGas === 'yes';
+        var bigLoads = formData.bigLoads || [];
+        var evPlan = formData.evPlan === 'yes';
+        var dayLabel = daytime ? 'High' : 'Medium';
+        var elecLabel = allElectric ? 'All-electric' : 'Mixed';
+        var bigLabels = { ducted_ac: 'Ducted air conditioning', electric_hot_water: 'Electric hot water', electric_cooking: 'Electric cooking', pool: 'Pool', heat_pump_hot_water: 'Heat pump hot water' };
+        var majorLoadsList = bigLoads.map(function(k) { return bigLabels[k] || k; }).join(', ') || 'None';
+        var batteryGuide = evPlan ? 'Consider later' : (!daytime && allElectric) ? 'Worth exploring' : 'Not needed yet';
+        var showReadiness = allElectric || evPlan || bigLoads.indexOf('ducted_ac') !== -1 || bigLoads.indexOf('electric_hot_water') !== -1;
+        return {
+          profile: profile,
+          savingsLow: savingsLow,
+          savingsHigh: savingsHigh,
+          paybackLow: roundHalf(paybackLow),
+          paybackHigh: roundHalf(paybackHigh),
+          paybackMid: paybackMid,
+          outlook: outlook,
+          outlookIcon: outlookIcon,
+          sc: sc,
+          dayLabel: dayLabel,
+          elecLabel: elecLabel,
+          majorLoadsList: majorLoadsList,
+          evPlan: evPlan,
+          batteryGuide: batteryGuide,
+          showReadiness: showReadiness,
+          daytime: daytime,
+          allElectric: allElectric,
+          bigLoads: bigLoads
+        };
+      }
+
+      function formatCurrency(n) { return '$' + Number(n).toLocaleString('en-AU', { maximumFractionDigits: 0 }); }
+      function formatYears(n) { return Number(n).toFixed(1) + ' years'; }
+
+      function renderFullResult() {
+        var full = document.getElementById('full-result');
+        var locked = document.getElementById('locked-box');
+        if (!full || !locked) return;
+        var result = calcFullResult();
+        if (!result) { full.classList.add('hidden'); locked.classList.remove('hidden'); return; }
+        var p = result.profile;
+        var email = (formData.email || '').trim() || '—';
+        var today = new Date().toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
+        var outlookRationale = result.outlook === 'Recommended' ? 'Payback is within a typical range for solar in SA.' : result.outlook === 'Conditional' ? 'Payback is longer; review tariff and usage to optimise.' : 'Payback may be long; consider whether solar fits your timeline.';
+        if (result.daytime) outlookRationale += ' Daytime use supports self-consumption.';
+        if (result.allElectric) outlookRationale += ' All-electric homes often benefit more.';
+
+        var html = '';
+        html += '<div class="report-card report-header">';
+        html += '<h2>Energy Decision Summary (Lite)</h2>';
+        html += '<p class="subline">Generated for: ' + escapeHtml(email) + ' · Adelaide, SA · ' + today + '</p>';
+        html += '<p class="badges">Independent advice · No installation · No commissions</p>';
+        html += '</div>';
+
+        html += '<div class="report-card hero-summary">';
+        html += '<p class="label">Estimated annual savings</p>';
+        html += '<p class="big-number">' + formatCurrency(result.savingsLow) + ' – ' + formatCurrency(result.savingsHigh) + ' / year</p>';
+        html += '<p class="label">Estimated payback</p>';
+        html += '<p class="big-number">' + formatYears(result.paybackLow) + ' – ' + formatYears(result.paybackHigh) + '</p>';
+        html += '<p class="footnote">Based on a standard 6.6kW system and typical SA assumptions.</p>';
+        html += '</div>';
+
+        html += '<div class="report-card decision-outlook">';
+        html += '<span class="icon" aria-hidden="true">' + result.outlookIcon + '</span>';
+        html += '<div><p class="label">Decision outlook: ' + result.outlook + '</p><p>' + outlookRationale + '</p></div>';
+        html += '</div>';
+
+        html += '<div class="report-card"><h3>What drove this result</h3><ul>';
+        html += '<li>Daytime usage pattern: ' + result.dayLabel + '</li>';
+        html += '<li>Home electrification: ' + result.elecLabel + '</li>';
+        html += '<li>Major loads: ' + escapeHtml(result.majorLoadsList) + '</li>';
+        html += '<li>EV plan: ' + (result.evPlan ? 'Yes' : 'No') + '</li>';
+        html += '</ul></div>';
+
+        html += '<div class="report-card accordion-item"><button type="button" class="accordion-head" aria-expanded="false">Assumptions used</button><div class="accordion-body">';
+        html += '<ul><li>Solar size: 6.6kW</li><li>Annual generation: ~9,000 kWh/year</li><li>Tariff: $0.35/kWh (default estimate)</li><li>Feed-in tariff: $0.08/kWh (default)</li><li>System cost: $8,000 (placeholder)</li><li>Self-consumption rate: ' + Math.round(result.sc * 100) + '%</li></ul>';
+        html += '<p class="footnote">Savings and payback are a range because usage and tariffs vary. Pro uses on-site data for higher accuracy.</p></div></div>';
+
+        html += '<div class="report-card"><h3>Battery guidance</h3>';
+        html += '<p>' + result.batteryGuide + '.</p>';
+        html += '<p class="footnote">For battery decisions, Pro is recommended.</p></div>';
+
+        html += '<div class="next-steps-grid">';
+        html += '<div class="next-step-card"><h4>Upgrade to Pro Advisory (credit applied)</h4><ul><li>On-site load measurement</li><li>Switchboard capacity review</li><li>More accurate modelling</li></ul><button type="button" class="btn" disabled>Book Pro Advisory</button><p class="credit-note" style="margin-top:0.5rem;">Your $199 credit will be applied.</p></div>';
+        if (result.showReadiness) {
+          html += '<div class="next-step-card"><h4>Check Electrical Readiness</h4><ul><li>Capacity and safety check before upgrades</li><li>Compliance review</li></ul><button type="button" class="btn btn-secondary" disabled>Check readiness</button></div>';
+        }
+        html += '</div>';
+
+        full.innerHTML = html;
+        full.querySelectorAll('.accordion-head').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var item = btn.closest('.accordion-item');
+            item.classList.toggle('open');
+            btn.setAttribute('aria-expanded', item.classList.contains('open'));
+          });
+        });
+        full.classList.remove('hidden');
+        locked.classList.add('hidden');
+      }
+      function escapeHtml(s) {
+        if (!s) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
 
       function track(eventName, params) {
         var payload = { event: eventName, params: params || {}, ts: new Date().toISOString() };
@@ -595,14 +825,26 @@
         return Array.prototype.map.call(checkboxes, function(c) { return c.value; });
       }
 
-      var ctaStart = document.getElementById('cta-start');
-      if (ctaStart) {
-        ctaStart.addEventListener('click', function(e) {
-          e.preventDefault();
+      var heroCta = document.getElementById('hero-cta');
+      if (heroCta) {
+        heroCta.addEventListener('click', function() {
+          track('hero_cta_click', {});
+          var section = document.getElementById('section-1');
+          if (section) section.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+      var bridgeCta = document.getElementById('bridge-cta');
+      if (bridgeCta) {
+        bridgeCta.addEventListener('click', function() {
+          track('bridge_cta_click', {});
+          track('snapshot_start', {});
           var section = document.getElementById('form-section');
           if (section) section.scrollIntoView({ behavior: 'smooth' });
-          track('snapshot_start', {});
         });
+      }
+      function showStepError(step, show) {
+        var err = document.getElementById('error-' + step);
+        if (err) err.classList.toggle('visible', !!show);
       }
 
       function findOptionBtn(target) {
@@ -640,21 +882,21 @@
         if (n >= 1) showPanel(n);
       }
       document.getElementById('next-1').addEventListener('click', function() {
-        if (formData.annualBillBand) goNext(2);
+        if (formData.annualBillBand) { showStepError(1, false); goNext(2); } else showStepError(1, true);
       });
       document.getElementById('back-2').addEventListener('click', function() { goBack(1); });
       document.getElementById('next-2').addEventListener('click', function() {
-        if (formData.daytimeAtHome) goNext(3);
+        if (formData.daytimeAtHome) { showStepError(2, false); goNext(3); } else showStepError(2, true);
       });
       document.getElementById('back-3').addEventListener('click', function() { goBack(2); });
       document.getElementById('next-3').addEventListener('click', function() {
-        if (formData.allElectricNoGas) goNext(4);
+        if (formData.allElectricNoGas) { showStepError(3, false); goNext(4); } else showStepError(3, true);
       });
       document.getElementById('back-4').addEventListener('click', function() { goBack(3); });
       document.getElementById('next-4').addEventListener('click', function() { goNext(5); });
       document.getElementById('back-5').addEventListener('click', function() { goBack(4); });
       document.getElementById('next-5').addEventListener('click', function() {
-        if (formData.evPlan) goNext(6);
+        if (formData.evPlan) { showStepError(5, false); goNext(6); } else showStepError(5, true);
       });
       document.getElementById('back-6').addEventListener('click', function() { goBack(5); });
 
@@ -714,23 +956,37 @@
         var profile = calcProfile();
         if (!profile) return;
         document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
-        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This usage pattern is often where a standard 6.6kW solar system can make a meaningful difference — unlock to see your estimated annual savings.';
-        document.getElementById('assumptions-body').innerHTML = '<ul><li>' + profile.assumptions.join('</li><li>') + '</li></ul>';
+        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This usage pattern is often where solar can make a meaningful difference — unlock to see your estimated annual savings and payback.';
+        document.getElementById('assumptions-body').innerHTML = '<ul><li>Tariff: $0.35/kWh (estimate).</li><li>System: 6.6kW, ~9,000 kWh/year production.</li></ul>';
         resultsSection.classList.add('visible');
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (isUnlocked()) renderFullResult();
       });
 
       if (unlockBtn) {
         unlockBtn.addEventListener('click', function() {
+          try { localStorage.setItem('lite_unlocked', 'true'); } catch (err) {}
           track('unlock_click', {});
           if (unlockModal) { unlockModal.classList.add('visible'); unlockModal.setAttribute('aria-hidden', 'false'); }
-          var emailWhenReady = document.getElementById('email-when-ready');
-          if (emailWhenReady) emailWhenReady.focus();
+        });
+      }
+
+      var debugReset = document.getElementById('debug-reset');
+      var resetUnlockLink = document.getElementById('reset-unlock-link');
+      if (debugReset && resetUnlockLink) {
+        if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1') {
+          debugReset.classList.remove('hidden');
+        }
+        resetUnlockLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          try { localStorage.removeItem('lite_unlocked'); } catch (err) {}
+          window.location.reload();
         });
       }
 
       function closeModal() {
         if (unlockModal) { unlockModal.classList.remove('visible'); unlockModal.setAttribute('aria-hidden', 'true'); }
+        renderFullResult();
       }
       if (modalClose) modalClose.addEventListener('click', closeModal);
       if (unlockModal) unlockModal.addEventListener('click', function(e) {
