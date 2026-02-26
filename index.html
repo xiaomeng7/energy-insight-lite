@@ -592,16 +592,25 @@
         });
       }
 
+      function findOptionBtn(target) {
+        var el = target;
+        while (el && el !== form) {
+          if (el.classList && el.classList.contains('option-btn') && el.getAttribute('data-value')) return el;
+          el = el.parentNode;
+        }
+        return null;
+      }
       form.addEventListener('click', function(e) {
-        var btn = e.target && e.target.closest && e.target.closest('.option-btn[data-value]');
+        var btn = findOptionBtn(e.target);
         if (!btn) return;
         e.preventDefault();
-        var panel = btn.closest('.form-panel');
-        if (!panel) return;
-        var panelId = panel.id;
+        e.stopPropagation();
+        var panel = btn.parentNode;
+        while (panel && (!panel.classList || !panel.classList.contains('form-panel'))) panel = panel.parentNode;
+        if (!panel || !panel.id) return;
         var step = panel.getAttribute('data-step');
         var name = step === '1' ? 'annualBillBand' : step === '2' ? 'daytimeAtHome' : step === '3' ? 'allElectricNoGas' : step === '5' ? 'evPlan' : null;
-        if (name) selectOption(panelId, name, btn.getAttribute('data-value'));
+        if (name) selectOption(panel.id, name, btn.getAttribute('data-value'));
       });
 
       form.addEventListener('change', function(e) {
