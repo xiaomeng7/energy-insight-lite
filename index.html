@@ -441,20 +441,19 @@
     <section class="hero" id="section-0">
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <h1>Electricity bills rising again?</h1>
-        <p class="sub">Before spending thousands on solar, check if it actually makes financial sense for your home.</p>
-        <button type="button" onclick="scrollToCheck()">See if it makes sense ↓</button>
+        <h1>Your electricity bill went up again.</h1>
+        <p class="sub">But does solar actually fix it?</p>
+        <button type="button" onclick="scrollToCheck()">Check my numbers ↓</button>
       </div>
     </section>
 
     <!-- SECTION 1 — Bridge (emotion → logic) -->
     <section class="section-1" id="section-1">
       <div class="bridge-inner">
-        <h2 class="bridge-heading">You're not alone.</h2>
         <ul class="bridge-list">
-          <li>Electricity prices are rising.</li>
-          <li>Solar can help — but not equally.</li>
-          <li>The question is: does it make sense for you?</li>
+          <li>Some homes save thousands.</li>
+          <li>Some barely break even.</li>
+          <li>Most people don't know which one they are.</li>
         </ul>
         <div class="bridge-cta">
           <button type="button" class="btn" id="bridge-cta">Start the 2-minute check</button>
@@ -607,54 +606,55 @@
             <p class="locked-line">EV impact note (locked)</p>
           </div>
           <div class="unlock-overlay">
-            <p><strong>See your estimated annual savings</strong></p>
-            <button type="button" class="btn" id="unlock-btn">Unlock full decision result — $199</button>
-            <p class="credit-emphasis">$199 credited toward Pro or Essential within 30 days.</p>
+            <button type="button" class="btn" id="unlock-btn">See the actual savings numbers — $199</button>
           </div>
         </div>
         <p class="debug-reset hidden" id="debug-reset"><a href="#" id="reset-unlock-link">Reset unlock (for testing)</a></p>
-        <h3 style="margin-top: 2rem;">Lite vs Pro</h3>
-        <table class="comparison-table" aria-label="Comparison Lite vs Pro">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Energy Insight Lite</th>
-              <th>Energy Insight Pro</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Price</td>
-              <td>$199</td>
-              <td>From $990</td>
-            </tr>
-            <tr>
-              <td>Usage profile</td>
-              <td>Yes</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Savings estimate (6.6kW)</td>
-              <td>Yes</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Written recommendation</td>
-              <td>Short written decision summary (online)</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Tariff &amp; strategy</td>
-              <td>No</td>
-              <td>Yes</td>
-            </tr>
-            <tr>
-              <td>Lite credit applied</td>
-              <td>—</td>
-              <td>Yes</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Lite vs Pro comparison hidden; Upgrade to Pro appears in full result after unlock -->
+        <div class="comparison-table-wrap" style="display:none;" aria-hidden="true">
+          <h3 style="margin-top: 2rem;">Lite vs Pro</h3>
+          <table class="comparison-table" aria-label="Comparison Lite vs Pro">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Energy Insight Lite</th>
+                <th>Energy Insight Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Price</td>
+                <td>$199</td>
+                <td>From $990</td>
+              </tr>
+              <tr>
+                <td>Usage profile</td>
+                <td>Yes</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Savings estimate (6.6kW)</td>
+                <td>Yes</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Written recommendation</td>
+                <td>Short written decision summary (online)</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Tariff &amp; strategy</td>
+                <td>No</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>Lite credit applied</td>
+                <td>—</td>
+                <td>Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -670,18 +670,7 @@
             <button type="button" class="faq-q">How accurate is the estimate?</button>
             <p class="faq-a">Unlock reveals the full estimate based on your answers. Pro improves accuracy with on-site load measurement.</p>
           </li>
-          <li class="faq-item">
-            <button type="button" class="faq-q">Why does the full result cost $199?</button>
-            <p class="faq-a">The full result includes savings calculations, payback, and recommendations. The one-off fee covers analysis and delivery.</p>
-          </li>
-          <li class="faq-item">
-            <button type="button" class="faq-q">What if I'm not sure about my bill?</button>
-            <p class="faq-a">Pick the range that best matches your last 12 months. The profile uses midpoints; being roughly right is enough for the snapshot.</p>
-          </li>
-          <li class="faq-item">
-            <button type="button" class="faq-q">Refund policy</button>
-            <p class="faq-a">Contact us at info@bhtechnology.com.au. We'll work with you if the product doesn't meet the described scope.</p>
-          </li>
+          <!-- Removed for positioning: Why $199, bill uncertainty, Refund policy -->
         </ul>
       </div>
     </section>
@@ -1062,7 +1051,7 @@
         var profile = calcProfile();
         if (!profile) return;
         document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
-        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This usage pattern is often where solar can make a meaningful difference — unlock to see your estimated annual savings and payback.';
+        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This level of usage can significantly affect the financial outcome.';
         document.getElementById('assumptions-body').innerHTML = '<ul><li>Tariff: $0.35/kWh (estimate).</li><li>System: 6.6kW, ~9,000 kWh/year production.</li></ul>';
         resultsSection.classList.add('visible');
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
