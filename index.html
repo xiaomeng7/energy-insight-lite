@@ -69,7 +69,8 @@
       padding: 2rem 0 2.5rem;
       text-align: center;
     }
-    .hero-sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 1.05rem; }
+    .hero-sub { color: var(--muted); margin-bottom: 0.5rem; font-size: 1.05rem; }
+    .hero-price-note { font-size: 0.9rem; color: #777; margin: 0 0 1.5rem; font-weight: normal; }
     .hero-cta { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 1.5rem; }
     .hero-cta .btn { margin: 0 .25rem 0 0; }
     .section {
@@ -190,6 +191,7 @@
     }
     .locked-box .unlock-overlay .btn { margin-top: .5rem; }
     .credit-note { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
+    .credit-emphasis { font-size: .875rem; font-weight: 600; color: var(--text); margin-top: 0.5rem; }
     .comparison-table {
       width: 100%;
       border-collapse: collapse;
@@ -280,7 +282,8 @@
     <section class="hero" id="hero">
       <div class="container">
         <h1>See how much a standard 6.6kW solar system could save you each year</h1>
-        <p class="hero-sub">Answer 5 quick questions and get an instant preview of your energy profile. Unlock the full result for $199.</p>
+        <p class="hero-sub">Answer 5 quick questions and get an instant preview of your energy profile.</p>
+        <p class="hero-price-note">Free preview · Full decision result $199 · Credited toward Pro</p>
         <div class="hero-cta">
           <a href="#form-section" class="btn" id="cta-start">Start 2-minute check</a>
           <a href="#how-it-works" class="btn btn-secondary">How it works</a>
@@ -304,7 +307,7 @@
           </div>
           <div class="step-card">
             <div class="step-num">3</div>
-            <h3>Unlock $199</h3>
+            <h3>Unlock full financial result ($199, credited if you upgrade)</h3>
             <p>Get the full result with savings and recommendations.</p>
           </div>
         </div>
@@ -426,9 +429,10 @@
             <p>Full result: annual savings estimate, payback, and tailored recommendations appear here after unlock.</p>
           </div>
           <div class="unlock-overlay">
-            <p><strong>Unlock full result – $199</strong></p>
+            <p><strong>Unlock Full Decision Result – $199</strong></p>
             <button type="button" class="btn" id="unlock-btn">Unlock full result – $199</button>
             <p class="credit-note">One-off payment. Credit card secure. Better Home Technology Pty Ltd.</p>
+            <p class="credit-emphasis">$199 credited toward Pro or Essential within 30 days.</p>
           </div>
         </div>
         <h3 style="margin-top: 2rem;">Lite vs Pro</h3>
@@ -458,12 +462,17 @@
             </tr>
             <tr>
               <td>Written recommendation</td>
-              <td>No</td>
+              <td>Short written decision summary (online)</td>
               <td>Yes</td>
             </tr>
             <tr>
               <td>Tariff &amp; strategy</td>
               <td>No</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Lite credit applied</td>
+              <td>—</td>
               <td>Yes</td>
             </tr>
           </tbody>
@@ -481,7 +490,7 @@
           </li>
           <li class="faq-item">
             <button type="button" class="faq-q">How accurate is the estimate?</button>
-            <p class="faq-a">The free profile is based on your bill band and answers; we apply standard assumptions. Accuracy improves with the full unlock and real usage data.</p>
+            <p class="faq-a">Unlock reveals the full estimate based on your answers. Pro improves accuracy with on-site load measurement.</p>
           </li>
           <li class="faq-item">
             <button type="button" class="faq-q">Why does the full result cost $199?</button>
@@ -705,7 +714,7 @@
         var profile = calcProfile();
         if (!profile) return;
         document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
-        document.getElementById('what-this-means').textContent = profile.whatThisMeans;
+        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This usage pattern is often where a standard 6.6kW solar system can make a meaningful difference — unlock to see your estimated annual savings.';
         document.getElementById('assumptions-body').innerHTML = '<ul><li>' + profile.assumptions.join('</li><li>') + '</li></ul>';
         resultsSection.classList.add('visible');
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
