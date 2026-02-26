@@ -7,6 +7,11 @@
   - SECTION 3: (A) Free preview: usage band + brief Assumptions (preview) accordion, bridge sentence only — no savings/payback. (B) Locked card: "See your estimated annual savings" with blurred placeholders; Unlock opens "Payment coming next" modal; on close → render full result. (C) Full result: 7-block report when unlocked (URL ?unlocked=1 or localStorage lite_unlocked).
   - Unlock: click sets localStorage, opens modal; closing modal renders full result (no Stripe).
   - Tracking: page_open, hero_cta_click, bridge_cta_click, snapshot_start, question_view, question_answer, snapshot_complete, unlock_click, unlock_modal_submit.
+
+  CHANGELOG (polish): Smoother transition from HERO to 2-minute check.
+  - Bridge section: heading "You're not alone.", editorial 3 bullets (max 10 words), single CTA "Start the 2-minute check", white bg, generous padding, subtle divider below.
+  - Form section: light grey (#f7f7f7) page bg, centered white card (max-width 720px), progress "Step X of Y" + thin bar at top of card, one question per step with h2 + helper text, large tap targets (radio tiles, chip multi-select), Back/Next, inline error on Next click, Enter = Next; microcopy: "This takes about 2 minutes.", "No bill upload required.", "You'll get an instant preview." (no $199 in form).
+  - Results: smooth-scroll on completion + CSS fade-in when results appear.
 -->
 <html lang="en">
 <head>
@@ -75,45 +80,86 @@
     label { display: block; margin-bottom: .25rem; font-weight: 500; }
     .muted { color: var(--muted); font-size: .9375rem; }
     /* SECTION 0 — Hero (full-screen, emotional) */
-    .section-0 {
-      --hero-bg-image: url('hero-bill.png');
+    .hero {
       position: relative;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      text-align: center;
-    }
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      background: var(--hero-bg-image, linear-gradient(135deg, #2c3e50 0%, #1a252f 50%, #0d1117 100%));
+      height: 100vh;
+      background-image: url('bill-night.png');
       background-size: cover;
-      background-position: center;
+      background-position: center bottom;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: center;
+      padding-top: 18vh;
     }
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,.48);
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.75) 0%,
+        rgba(0,0,0,0.55) 40%,
+        rgba(0,0,0,0.35) 70%,
+        rgba(0,0,0,0.2) 100%
+      );
     }
-    .section-0 .hero-inner {
+    .hero-content {
       position: relative;
       z-index: 1;
-      max-width: 560px;
-      margin: 0 auto;
+      max-width: 800px;
+      padding: 20px;
+      color: white;
     }
-    .section-0 h1 { color: #fff; font-size: clamp(1.75rem, 5vw, 2.5rem); margin-bottom: 1rem; line-height: 1.25; }
-    .section-0 .hero-p1 { color: rgba(255,255,255,.95); font-size: 1.1rem; margin-bottom: 0.75rem; }
-    .section-0 .hero-p2 { color: rgba(255,255,255,.85); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5; }
-    .section-0 .hero-cta { margin-top: 1.5rem; }
-    .section-0 .hero-cta .btn { background: #fff; color: var(--text); }
-    .section-0 .hero-cta .btn:hover { background: #f0f0f0; }
-    /* SECTION 1 — Bridge */
-    .section-1 { background: #fff; padding: 3rem 1rem; }
-    .section-1 .container { max-width: 520px; }
-    .section-1 ul { margin: 0 0 1.5rem; padding-left: 1.25rem; font-size: 1.05rem; line-height: 1.7; color: var(--text); }
-    .section-1 .bridge-cta { margin-top: 1.5rem; }
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .hero .sub {
+      font-size: 20px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+    .hero button {
+      background: #ff4d4f;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .hero button:hover {
+      background: #ff2a2d;
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: clamp(1.5rem, 8vw, 2rem); }
+      .hero .sub { font-size: 1rem; }
+    }
+    /* SECTION 1 — Bridge (emotion → logic, editorial) */
+    .section-1 {
+      background: #fff;
+      padding: 4rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-1 .bridge-inner { max-width: 560px; margin: 0 auto; }
+    .section-1 .bridge-heading { font-size: clamp(1.5rem, 4vw, 1.75rem); font-weight: 600; margin: 0 0 1.5rem; color: var(--text); }
+    .section-1 .bridge-list {
+      margin: 0 0 2rem;
+      padding-left: 1.5rem;
+      font-size: 1.125rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+    .section-1 .bridge-list li { margin-bottom: 0.75rem; }
+    .section-1 .bridge-cta { margin-top: 0.5rem; }
+    .section-1 .bridge-cta .btn { padding: 0.75rem 1.5rem; font-size: 1.0625rem; }
+    @media (max-width: 600px) {
+      .section-1 { padding: 3rem 1rem; }
+      .section-1 .bridge-list { font-size: 1.0625rem; }
+    }
     .section {
       padding: 2rem 0;
       border-top: 1px solid var(--border);
@@ -131,21 +177,33 @@
       box-shadow: var(--shadow);
     }
     .step-num { font-weight: 700; color: var(--accent); margin-bottom: .35em; }
+    /* SECTION 2 — 2-minute check (card on calm grey) */
+    #form-section {
+      background: #f7f7f7;
+      padding: 3rem 1rem 4rem;
+    }
+    #form-section .form-card-wrap { max-width: 720px; margin: 0 auto; }
+    .form-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      padding: 2rem 1.5rem;
+    }
     .form-panel {
       display: none;
-      background: var(--card);
-      padding: 1.5rem;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      margin: 1.5rem 0;
+      padding: 0;
     }
     .form-panel.active { display: block; }
-    .progress-wrap { margin-bottom: 1.5rem; }
+    .form-panel .form-question { margin-bottom: 1.5rem; }
+    .form-panel h2 { font-size: clamp(1.25rem, 3vw, 1.5rem); font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
+    .form-panel .form-helper { font-size: 0.9375rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .progress-wrap { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
     .progress-bar {
-      height: 6px;
+      height: 4px;
       background: var(--border);
-      border-radius: 3px;
+      border-radius: 2px;
       overflow: hidden;
+      margin-top: 0.5rem;
     }
     .progress-fill {
       height: 100%;
@@ -153,27 +211,52 @@
       width: 0%;
       transition: width .3s ease;
     }
-    .progress-text { font-size: .875rem; color: var(--muted); margin-top: .35rem; }
-    .form-nav { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 1rem; }
-    .form-nav .btn { min-width: 100px; }
-    .option-group { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+    .progress-text { font-size: 0.875rem; color: var(--muted); margin: 0; }
+    .form-nav { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+    .form-nav .btn { min-width: 110px; padding: 0.7rem 1.25rem; }
+    .option-group { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; }
     .option-btn {
-      padding: .5rem 1rem;
-      border: 2px solid #adb5bd;
+      padding: 0.85rem 1.25rem;
+      min-height: 48px;
+      border: 2px solid var(--border);
       background: #fff;
       color: var(--text);
       border-radius: var(--radius);
       cursor: pointer;
       font: inherit;
+      font-size: 1rem;
       transition: border-color .2s, background .2s;
     }
-    .option-btn:hover { border-color: var(--accent); background: #f0f4ff; }
-    .option-btn.selected { border-color: var(--accent); background: rgba(13, 110, 253, .12); color: var(--text); }
-    .option-btn[data-multi] { margin: .25rem; }
-    .checkbox-group label { display: flex; align-items: center; gap: .5rem; cursor: pointer; margin-bottom: .5rem; font-weight: normal; color: var(--text); }
+    .option-btn:hover { border-color: var(--accent); background: #f8faff; }
+    .option-btn.selected { border-color: var(--accent); background: rgba(13, 110, 253, .1); color: var(--text); }
+    .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .chip-group label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      min-height: 48px;
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.9375rem;
+      font-weight: normal;
+      color: var(--text);
+      transition: border-color .2s, background .2s;
+    }
+    .chip-group label:hover { border-color: var(--accent); background: #f8faff; }
+    .chip-group input[type="checkbox"] { width: auto; margin: 0 0.5rem 0 0; accent-color: var(--accent); }
+    .form-card .form-intro { font-size: 0.9375rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.5; }
+    .form-card input[type="text"], .form-card input[type="email"], .form-card input[type="tel"] {
+      padding: 0.75rem 1rem;
+      min-height: 48px;
+      font-size: 1rem;
+    }
+    .checkbox-group label { display: flex; align-items: center; gap: .5rem; cursor: pointer; margin-bottom: .5rem; font-weight: normal; color: var(--text); min-height: 44px; }
     .checkbox-group input[type="checkbox"] { width: auto; margin: 0; accent-color: var(--accent); }
-    .results-section { display: none; padding: 2rem 0; }
-    .results-section.visible { display: block; }
+    .results-section { display: none; padding: 3rem 0; opacity: 0; transition: opacity 0.4s ease; }
+    .results-section.visible { display: block; animation: resultsFadeIn 0.5s ease forwards; }
+    @keyframes resultsFadeIn { from { opacity: 0; } to { opacity: 1; } }
     .profile-card {
       background: var(--card);
       padding: 1.5rem;
@@ -354,27 +437,24 @@
 </head>
 <body>
   <main>
-    <!-- SECTION 0 — Hero (emotional, full-screen). Background: hero-bill.png (bill + notes + currency). -->
-    <section class="section-0" id="section-0">
-      <div class="hero-bg" aria-hidden="true"></div>
+    <!-- SECTION 0 — Hero (emotional, full-screen). Background: bill-night.png -->
+    <section class="hero" id="section-0">
       <div class="hero-overlay" aria-hidden="true"></div>
-      <div class="hero-inner">
+      <div class="hero-content">
         <h1>Electricity bills rising again?</h1>
-        <p class="hero-p1">You're not alone. Many Adelaide households have seen sharp increases.</p>
-        <p class="hero-p2">Before spending $8,000–$15,000 on solar or battery, check whether it actually makes financial sense for your home.</p>
-        <div class="hero-cta">
-          <button type="button" class="btn" id="hero-cta">See if it makes sense ↓</button>
-        </div>
+        <p class="sub">Before spending thousands on solar, check if it actually makes financial sense for your home.</p>
+        <button type="button" onclick="scrollToCheck()">See if it makes sense ↓</button>
       </div>
     </section>
 
     <!-- SECTION 1 — Bridge (emotion → logic) -->
     <section class="section-1" id="section-1">
-      <div class="container">
-        <ul>
+      <div class="bridge-inner">
+        <h2 class="bridge-heading">You're not alone.</h2>
+        <ul class="bridge-list">
           <li>Electricity prices are rising.</li>
-          <li>Solar can help — but not equally for every home.</li>
-          <li>The real question: does it make financial sense for you?</li>
+          <li>Solar can help — but not equally.</li>
+          <li>The question is: does it make sense for you?</li>
         </ul>
         <div class="bridge-cta">
           <button type="button" class="btn" id="bridge-cta">Start the 2-minute check</button>
@@ -383,103 +463,120 @@
     </section>
 
     <!-- SECTION 2 — 2-minute check -->
-    <section class="section" id="form-section">
-      <div class="container">
-        <h2 class="section-title">2-minute check</h2>
-        <div class="progress-wrap">
-          <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-fill" id="progress-fill"></div>
+    <section id="form-section">
+      <div class="form-card-wrap">
+        <p class="form-intro" style="text-align:center;margin-bottom:1.5rem;color:var(--muted);font-size:0.9375rem;">This takes about 2 minutes. No bill upload required. You'll get an instant preview.</p>
+        <div class="form-card">
+          <div class="progress-wrap">
+            <p class="progress-text" id="progress-text">Step 1 of 6</p>
+            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
           </div>
-          <p class="progress-text" id="progress-text">Step 1 of 6</p>
+          <form id="snapshot-form" novalidate>
+            <div class="form-panel active" id="panel-1" data-step="1">
+              <div class="form-question">
+                <h2>What's your approximate annual electricity bill?</h2>
+                <p class="form-helper">Select the range that best matches your last 12 months.</p>
+                <div class="option-group" role="group" aria-label="Annual bill range">
+                  <button type="button" class="option-btn" data-value="under_2000">&lt;$2,000</button>
+                  <button type="button" class="option-btn" data-value="2000_3000">$2,000–$3,000</button>
+                  <button type="button" class="option-btn" data-value="3000_4000">$3,000–$4,000</button>
+                  <button type="button" class="option-btn" data-value="4000_5000">$4,000–$5,000</button>
+                  <button type="button" class="option-btn" data-value="5000_plus">$5,000+</button>
+                </div>
+                <p class="error-msg" id="error-1">Please select a bill range.</p>
+              </div>
+              <input type="hidden" name="annualBillBand" id="annualBillBand" value="">
+              <div class="form-nav">
+                <span></span>
+                <button type="button" class="btn" id="next-1">Next</button>
+              </div>
+            </div>
+            <div class="form-panel" id="panel-2" data-step="2">
+              <div class="form-question">
+                <h2>Are you usually at home during the day?</h2>
+                <p class="form-helper">e.g. work from home, retired, part-time.</p>
+                <div class="option-group" role="group" aria-label="Daytime at home">
+                  <button type="button" class="option-btn" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn" data-value="no">No</button>
+                </div>
+                <p class="error-msg" id="error-2">Please select Yes or No.</p>
+              </div>
+              <input type="hidden" name="daytimeAtHome" id="daytimeAtHome" value="">
+              <div class="form-nav">
+                <button type="button" class="btn btn-secondary" id="back-2">Back</button>
+                <button type="button" class="btn" id="next-2">Next</button>
+              </div>
+            </div>
+            <div class="form-panel" id="panel-3" data-step="3">
+              <div class="form-question">
+                <h2>Is your home all-electric (no gas)?</h2>
+                <p class="form-helper">Heating, cooking, hot water.</p>
+                <div class="option-group" role="group" aria-label="All electric no gas">
+                  <button type="button" class="option-btn" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn" data-value="no">No</button>
+                </div>
+                <p class="error-msg" id="error-3">Please select Yes or No.</p>
+              </div>
+              <input type="hidden" name="allElectricNoGas" id="allElectricNoGas" value="">
+              <div class="form-nav">
+                <button type="button" class="btn btn-secondary" id="back-3">Back</button>
+                <button type="button" class="btn" id="next-3">Next</button>
+              </div>
+            </div>
+            <div class="form-panel" id="panel-4" data-step="4">
+              <div class="form-question">
+                <h2>Which of these do you have?</h2>
+                <p class="form-helper">Select all that apply.</p>
+                <div class="chip-group">
+                  <label><input type="checkbox" name="bigLoads" value="ducted_ac"> Ducted air conditioning</label>
+                  <label><input type="checkbox" name="bigLoads" value="electric_hot_water"> Electric hot water</label>
+                  <label><input type="checkbox" name="bigLoads" value="electric_cooking"> Electric cooking</label>
+                  <label><input type="checkbox" name="bigLoads" value="pool"> Pool</label>
+                  <label><input type="checkbox" name="bigLoads" value="heat_pump_hot_water"> Heat pump hot water</label>
+                </div>
+              </div>
+              <div class="form-nav">
+                <button type="button" class="btn btn-secondary" id="back-4">Back</button>
+                <button type="button" class="btn" id="next-4">Next</button>
+              </div>
+            </div>
+            <div class="form-panel" id="panel-5" data-step="5">
+              <div class="form-question">
+                <h2>Are you planning to get an EV (or already have one)?</h2>
+                <p class="form-helper">Electric vehicle.</p>
+                <div class="option-group" role="group" aria-label="EV plan">
+                  <button type="button" class="option-btn" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn" data-value="no">No</button>
+                </div>
+                <p class="error-msg" id="error-5">Please select Yes or No.</p>
+              </div>
+              <input type="hidden" name="evPlan" id="evPlan" value="">
+              <div class="form-nav">
+                <button type="button" class="btn btn-secondary" id="back-5">Back</button>
+                <button type="button" class="btn" id="next-5">Next</button>
+              </div>
+            </div>
+            <div class="form-panel" id="panel-6" data-step="6">
+              <div class="form-question">
+                <h2>Almost there</h2>
+                <p class="form-helper">Enter your email to see your free energy profile. Name and phone are optional.</p>
+                <label for="email">Email <span aria-hidden="true">*</span></label>
+                <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+                <p class="error-msg" id="email-error">Please enter a valid email address.</p>
+                <label for="name">Name (optional)</label>
+                <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name">
+                <label for="phone">Phone (optional)</label>
+                <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" autocomplete="tel">
+              </div>
+              <div class="form-nav">
+                <button type="button" class="btn btn-secondary" id="back-6">Back</button>
+                <button type="submit" class="btn" id="submit-btn">See my profile</button>
+              </div>
+            </div>
+          </form>
         </div>
-        <form id="snapshot-form" novalidate>
-          <div class="form-panel active" id="panel-1" data-step="1">
-            <h3>What's your approximate annual electricity bill?</h3>
-            <p class="muted">Select the range that best matches your last 12 months.</p>
-            <div class="option-group" role="group" aria-label="Annual bill range">
-              <button type="button" class="option-btn" data-value="under_2000">&lt;$2,000</button>
-              <button type="button" class="option-btn" data-value="2000_3000">$2,000–$3,000</button>
-              <button type="button" class="option-btn" data-value="3000_4000">$3,000–$4,000</button>
-              <button type="button" class="option-btn" data-value="4000_5000">$4,000–$5,000</button>
-              <button type="button" class="option-btn" data-value="5000_plus">$5,000+</button>
-            </div>
-            <p class="error-msg" id="error-1">Please select a bill range.</p>
-            <input type="hidden" name="annualBillBand" id="annualBillBand" value="">
-            <div class="form-nav">
-              <span></span>
-              <button type="button" class="btn" id="next-1">Next</button>
-            </div>
-          </div>
-          <div class="form-panel" id="panel-2" data-step="2">
-            <h3>Are you usually at home during the day?</h3>
-            <p class="muted">e.g. work from home, retired, part-time.</p>
-            <div class="option-group" role="group" aria-label="Daytime at home">
-              <button type="button" class="option-btn" data-value="yes">Yes</button>
-              <button type="button" class="option-btn" data-value="no">No</button>
-            </div>
-            <p class="error-msg" id="error-2">Please select Yes or No.</p>
-            <input type="hidden" name="daytimeAtHome" id="daytimeAtHome" value="">
-            <div class="form-nav">
-              <button type="button" class="btn btn-secondary" id="back-2">Back</button>
-              <button type="button" class="btn" id="next-2">Next</button>
-            </div>
-          </div>
-          <div class="form-panel" id="panel-3" data-step="3">
-            <h3>Is your home all-electric (no gas)?</h3>
-            <div class="option-group" role="group" aria-label="All electric no gas">
-              <button type="button" class="option-btn" data-value="yes">Yes</button>
-              <button type="button" class="option-btn" data-value="no">No</button>
-            </div>
-            <p class="error-msg" id="error-3">Please select Yes or No.</p>
-            <input type="hidden" name="allElectricNoGas" id="allElectricNoGas" value="">
-            <div class="form-nav">
-              <button type="button" class="btn btn-secondary" id="back-3">Back</button>
-              <button type="button" class="btn" id="next-3">Next</button>
-            </div>
-          </div>
-          <div class="form-panel" id="panel-4" data-step="4">
-            <h3>Which of these do you have? (Select all that apply)</h3>
-            <div class="checkbox-group">
-              <label><input type="checkbox" name="bigLoads" value="ducted_ac"> Ducted air conditioning</label>
-              <label><input type="checkbox" name="bigLoads" value="electric_hot_water"> Electric hot water</label>
-              <label><input type="checkbox" name="bigLoads" value="electric_cooking"> Electric cooking</label>
-              <label><input type="checkbox" name="bigLoads" value="pool"> Pool (pump/heating)</label>
-              <label><input type="checkbox" name="bigLoads" value="heat_pump_hot_water"> Heat pump hot water</label>
-            </div>
-            <div class="form-nav">
-              <button type="button" class="btn btn-secondary" id="back-4">Back</button>
-              <button type="button" class="btn" id="next-4">Next</button>
-            </div>
-          </div>
-          <div class="form-panel" id="panel-5" data-step="5">
-            <h3>Are you planning to get an EV (or already have one)?</h3>
-            <div class="option-group" role="group" aria-label="EV plan">
-              <button type="button" class="option-btn" data-value="yes">Yes</button>
-              <button type="button" class="option-btn" data-value="no">No</button>
-            </div>
-            <p class="error-msg" id="error-5">Please select Yes or No.</p>
-            <input type="hidden" name="evPlan" id="evPlan" value="">
-            <div class="form-nav">
-              <button type="button" class="btn btn-secondary" id="back-5">Back</button>
-              <button type="button" class="btn" id="next-5">Next</button>
-            </div>
-          </div>
-          <div class="form-panel" id="panel-6" data-step="6">
-            <h3>Almost there</h3>
-            <p>Enter your email to see your free energy profile. Name and phone are optional.</p>
-            <label for="email">Email <span aria-hidden="true">*</span></label>
-            <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
-            <p class="error-msg" id="email-error">Please enter a valid email address.</p>
-            <label for="name">Name (optional)</label>
-            <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name">
-            <label for="phone">Phone (optional)</label>
-            <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" autocomplete="tel">
-            <div class="form-nav">
-              <button type="button" class="btn btn-secondary" id="back-6">Back</button>
-              <button type="submit" class="btn" id="submit-btn">See my profile</button>
-            </div>
-          </div>
-        </form>
       </div>
     </section>
 
@@ -825,14 +922,11 @@
         return Array.prototype.map.call(checkboxes, function(c) { return c.value; });
       }
 
-      var heroCta = document.getElementById('hero-cta');
-      if (heroCta) {
-        heroCta.addEventListener('click', function() {
-          track('hero_cta_click', {});
-          var section = document.getElementById('section-1');
-          if (section) section.scrollIntoView({ behavior: 'smooth' });
-        });
-      }
+      window.scrollToCheck = function() {
+        track('hero_cta_click', {});
+        var section = document.getElementById('section-1');
+        if (section) section.scrollIntoView({ behavior: 'smooth' });
+      };
       var bridgeCta = document.getElementById('bridge-cta');
       if (bridgeCta) {
         bridgeCta.addEventListener('click', function() {
@@ -899,6 +993,18 @@
         if (formData.evPlan) { showStepError(5, false); goNext(6); } else showStepError(5, true);
       });
       document.getElementById('back-6').addEventListener('click', function() { goBack(5); });
+
+      form.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        var active = document.querySelector('.form-panel.active');
+        if (!active) return;
+        var step = parseInt(active.getAttribute('data-step'), 10);
+        if (step >= 1 && step <= 5) {
+          e.preventDefault();
+          var nextBtn = document.getElementById('next-' + step);
+          if (nextBtn) nextBtn.click();
+        }
+      });
 
       function validateEmail() {
         var v = (emailInput.value || '').trim();
