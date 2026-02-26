@@ -19,6 +19,8 @@ npx serve .
 
 Push to a repo and deploy as static site (Netlify, Vercel, GitHub Pages, etc.). No build required.
 
+**Console:** If you see `WebSocket connection to 'ws://localhost:8081/' failed` — that comes from Netlify Dev / live-reload (or a browser extension), not from this repo. Safe to ignore on production.
+
 ## Tracking
 
 Events are logged to `console` and `window.__events` for QA. No GA4 in this repo.
