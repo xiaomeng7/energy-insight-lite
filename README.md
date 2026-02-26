@@ -1,6 +1,6 @@
-# Energy Insight (Lite)
+# Energy Insight Lite
 
-Standalone landing page for the Lite product: instant energy profile + locked full result (unlock $199). No build step, vanilla HTML/CSS/JS.
+**Product name: Lite.** Standalone landing page for the Lite product: instant energy profile + locked full result (unlock $199). No build step, vanilla HTML/CSS/JS.
 
 - **Single file:** `index.html` (embedded CSS + JS)
 - **Product:** Energy Insight (Lite), AUD $199 one-off

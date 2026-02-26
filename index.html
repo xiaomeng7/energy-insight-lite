@@ -427,8 +427,7 @@
     .full-result .decision-outlook { display: flex; align-items: flex-start; gap: 0.75rem; }
     .full-result .decision-outlook .icon { font-size: 1.5rem; line-height: 1; }
     .full-result .decision-outlook .label { font-weight: 600; margin-bottom: 0.25rem; }
-    .full-result .next-steps-grid { display: grid; gap: 1rem; }
-    @media (min-width: 600px) { .full-result .next-steps-grid { grid-template-columns: 1fr 1fr; } }
+    .full-result .next-steps-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; max-width: 100%; }
     .full-result .advisory-note {
       background: #fef9e7;
       border: 1px solid #e8d88a;
@@ -847,11 +846,43 @@
         html += '<div class="next-step-card"><h4>Before committing to solar, confirm the numbers are correct.</h4>';
         html += '<p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Energy Insight Pro validates whether solar is financially right for your specific home. We measure real load behaviour, review capacity limits, and model tariff impact — so you don\'t rely on installer estimates alone.</p>';
         html += '<ul><li>Confirm if solar truly makes sense</li><li>Validate correct system sizing</li><li>Identify hidden capacity constraints</li><li>Provide written independent recommendation</li></ul>';
-        html += '<a href="/book-call.html" class="btn">Book a 15-minute advisory call</a>';
+        html += '<button type="button" class="btn" id="pro-cta-btn">Book a 15-minute advisory call</button>';
         html += '<p class="credit-note" style="margin-top:0.5rem;">$199 credited toward Pro</p></div>';
         html += '</div>';
 
         full.innerHTML = html;
+        var proCta = full.querySelector('#pro-cta-btn');
+        if (proCta) {
+          proCta.addEventListener('click', function() {
+            var res = calcFullResult();
+            var snapshot = {
+              decisionLabel: res ? res.outlook : null,
+              savingsLow: res ? res.savingsLow : null,
+              savingsHigh: res ? res.savingsHigh : null,
+              paybackLow: res ? res.paybackLow : null,
+              paybackHigh: res ? res.paybackHigh : null,
+              annualBillBand: formData.annualBillBand || null,
+              allElectric: res ? res.allElectric : null,
+              hasEv: res ? res.evPlan : null,
+              hasSolar: false,
+              hasBattery: false,
+              timestamp: new Date().toISOString()
+            };
+            var jsonStr = JSON.stringify(snapshot);
+            var base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+            var base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            var name = (formData.name || '').trim();
+            var email = (formData.email || '').trim();
+            var phone = (formData.phone || '').trim();
+            var q = ['src=lite', 'lite=' + encodeURIComponent(base64url)];
+            if (name) q.push('name=' + encodeURIComponent(name));
+            if (email) q.push('email=' + encodeURIComponent(email));
+            if (phone) q.push('phone=' + encodeURIComponent(phone));
+            var finalUrl = 'https://advisory.bhtechnology.com.au/?' + q.join('&') + '#request-review';
+            track('pro_cta_click', { source: 'lite_upgrade', hasEmail: !!email, decisionLabel: res ? res.outlook : null, timestamp: new Date().toISOString() });
+            window.location.href = finalUrl;
+          });
+        }
         full.querySelectorAll('.accordion-head').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var item = btn.closest('.accordion-item');
