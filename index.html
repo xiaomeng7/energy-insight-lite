@@ -518,7 +518,8 @@
 
   <script>
     (function() {
-      window.__events = [];
+      function run() {
+      window.__events = window.__events || [];
       var BAND_MIDPOINTS = { under_2000: 1500, 2000_3000: 2500, 3000_4000: 3500, 4000_5000: 4500, 5000_plus: 6000 };
       var TARIFF = 0.35;
 
@@ -544,6 +545,7 @@
       var unlockModalSubmit = document.getElementById('unlock-modal-submit');
       var emailInput = document.getElementById('email');
       var emailError = document.getElementById('email-error');
+      if (!form || !progressFill || !progressText) return;
 
       function updateProgress() {
         var pct = (currentStep / totalSteps) * 100;
@@ -580,37 +582,33 @@
         return Array.prototype.map.call(checkboxes, function(c) { return c.value; });
       }
 
-      document.getElementById('cta-start').addEventListener('click', function(e) {
+      var ctaStart = document.getElementById('cta-start');
+      if (ctaStart) {
+        ctaStart.addEventListener('click', function(e) {
+          e.preventDefault();
+          var section = document.getElementById('form-section');
+          if (section) section.scrollIntoView({ behavior: 'smooth' });
+          track('snapshot_start', {});
+        });
+      }
+
+      form.addEventListener('click', function(e) {
+        var btn = e.target && e.target.closest && e.target.closest('.option-btn[data-value]');
+        if (!btn) return;
         e.preventDefault();
-        document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
-        track('snapshot_start', {});
+        var panel = btn.closest('.form-panel');
+        if (!panel) return;
+        var panelId = panel.id;
+        var step = panel.getAttribute('data-step');
+        var name = step === '1' ? 'annualBillBand' : step === '2' ? 'daytimeAtHome' : step === '3' ? 'allElectricNoGas' : step === '5' ? 'evPlan' : null;
+        if (name) selectOption(panelId, name, btn.getAttribute('data-value'));
       });
 
-      document.querySelectorAll('#panel-1 .option-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          selectOption('panel-1', 'annualBillBand', btn.getAttribute('data-value'));
-        });
-      });
-      document.querySelectorAll('#panel-2 .option-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          selectOption('panel-2', 'daytimeAtHome', btn.getAttribute('data-value'));
-        });
-      });
-      document.querySelectorAll('#panel-3 .option-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          selectOption('panel-3', 'allElectricNoGas', btn.getAttribute('data-value'));
-        });
-      });
-      document.querySelectorAll('#panel-4 input[name="bigLoads"]').forEach(function(cb) {
-        cb.addEventListener('change', function() {
+      form.addEventListener('change', function(e) {
+        if (e.target && e.target.name === 'bigLoads') {
           formData.bigLoads = getBigLoads();
           track('question_answer', { step: 4, question: 'bigLoads', value: formData.bigLoads });
-        });
-      });
-      document.querySelectorAll('#panel-5 .option-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          selectOption('panel-5', 'evPlan', btn.getAttribute('data-value'));
-        });
+        }
       });
 
       function goNext(n) {
@@ -700,26 +698,27 @@
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
 
-      unlockBtn.addEventListener('click', function() {
-        track('unlock_click', {});
-        unlockModal.classList.add('visible');
-        unlockModal.setAttribute('aria-hidden', 'false');
-        document.getElementById('email-when-ready').focus();
-      });
+      if (unlockBtn) {
+        unlockBtn.addEventListener('click', function() {
+          track('unlock_click', {});
+          if (unlockModal) { unlockModal.classList.add('visible'); unlockModal.setAttribute('aria-hidden', 'false'); }
+          var emailWhenReady = document.getElementById('email-when-ready');
+          if (emailWhenReady) emailWhenReady.focus();
+        });
+      }
 
       function closeModal() {
-        unlockModal.classList.remove('visible');
-        unlockModal.setAttribute('aria-hidden', 'true');
+        if (unlockModal) { unlockModal.classList.remove('visible'); unlockModal.setAttribute('aria-hidden', 'true'); }
       }
-      modalClose.addEventListener('click', closeModal);
-      unlockModal.addEventListener('click', function(e) {
+      if (modalClose) modalClose.addEventListener('click', closeModal);
+      if (unlockModal) unlockModal.addEventListener('click', function(e) {
         if (e.target === unlockModal) closeModal();
       });
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && unlockModal.classList.contains('visible')) closeModal();
+        if (e.key === 'Escape' && unlockModal && unlockModal.classList.contains('visible')) closeModal();
       });
 
-      unlockModalSubmit.addEventListener('click', function() {
+      if (unlockModalSubmit) unlockModalSubmit.addEventListener('click', function() {
         var emailMe = document.getElementById('email-when-ready').checked;
         track('unlock_modal_submit', { emailWhenReady: emailMe });
         closeModal();
@@ -744,6 +743,13 @@
       });
 
       updateProgress();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
     })();
   </script>
 </body>
