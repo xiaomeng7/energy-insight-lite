@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Energy Insight (Lite) | See your solar savings potential</title>
+  <meta name="description" content="See how much a standard 6.6kW solar system could save you each year. Quick 2-minute check.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #f8f9fa;
+      --text: #1a1a1a;
+      --muted: #5c5c5c;
+      --accent: #0d6efd;
+      --accent-hover: #0b5ed7;
+      --border: #dee2e6;
+      --card: #fff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 640px; margin: 0 auto; padding: 0 1rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    h1, h2, h3 { margin: 0 0 .5em; font-weight: 600; }
+    h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+    h2 { font-size: 1.25rem; }
+    p { margin: 0 0 1em; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, .btn {
+      display: inline-block;
+      padding: .6rem 1.2rem;
+      font: inherit;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: background .2s;
+    }
+    button:hover, .btn:hover { background: var(--accent-hover); }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { background: #ced4da; }
+    input[type="text"], input[type="email"], input[type="tel"] {
+      width: 100%;
+      padding: .6rem .75rem;
+      font: inherit;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: .5rem;
+    }
+    input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    input.error { border-color: #dc3545; }
+    label { display: block; margin-bottom: .25rem; font-weight: 500; }
+    .hero {
+      padding: 2rem 0 2.5rem;
+      text-align: center;
+    }
+    .hero-sub { color: var(--muted); margin-bottom: 1.5rem; font-size: 1.05rem; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 1.5rem; }
+    .hero-cta .btn { margin: 0 .25rem 0 0; }
+    .section {
+      padding: 2rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .section-title { text-align: center; margin-bottom: 1.5rem; }
+    .steps {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .step-card {
+      background: var(--card);
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .step-num { font-weight: 700; color: var(--accent); margin-bottom: .35em; }
+    .form-panel {
+      display: none;
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 1.5rem 0;
+    }
+    .form-panel.active { display: block; }
+    .progress-wrap { margin-bottom: 1.5rem; }
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .3s ease;
+    }
+    .progress-text { font-size: .875rem; color: var(--muted); margin-top: .35rem; }
+    .form-nav { display: flex; justify-content: space-between; margin-top: 1.5rem; gap: 1rem; }
+    .form-nav .btn { min-width: 100px; }
+    .option-group { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+    .option-btn {
+      padding: .5rem 1rem;
+      border: 2px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font: inherit;
+      transition: border-color .2s, background .2s;
+    }
+    .option-btn:hover { border-color: var(--accent); }
+    .option-btn.selected { border-color: var(--accent); background: rgba(13, 110, 253, .1); }
+    .option-btn[data-multi] { margin: .25rem; }
+    .checkbox-group label { display: flex; align-items: center; gap: .5rem; cursor: pointer; margin-bottom: .5rem; font-weight: normal; }
+    .checkbox-group input[type="checkbox"] { width: auto; margin: 0; }
+    .results-section { display: none; padding: 2rem 0; }
+    .results-section.visible { display: block; }
+    .profile-card {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+    .profile-card h3 { margin-bottom: .75rem; }
+    .usage-band { font-size: 1.25rem; font-weight: 600; color: var(--accent); margin: .5rem 0; }
+    .accordion { margin: 1rem 0; }
+    .accordion-item { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .5rem; overflow: hidden; }
+    .accordion-head {
+      width: 100%;
+      padding: .75rem 1rem;
+      text-align: left;
+      font: inherit;
+      font-weight: 500;
+      background: var(--bg);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .accordion-head:hover { background: #e9ecef; }
+    .accordion-head::after { content: "+"; font-size: 1.25rem; }
+    .accordion-item.open .accordion-head::after { content: "−"; }
+    .accordion-body { padding: 1rem; border-top: 1px solid var(--border); display: none; }
+    .accordion-item.open .accordion-body { display: block; }
+    .locked-box {
+      position: relative;
+      background: var(--card);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .locked-box .blur-content {
+      filter: blur(8px);
+      pointer-events: none;
+      user-select: none;
+      min-height: 120px;
+    }
+    .locked-box .unlock-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.85);
+    }
+    .locked-box .unlock-overlay .btn { margin-top: .5rem; }
+    .credit-note { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin: 1.5rem 0;
+    }
+    .comparison-table th, .comparison-table td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .comparison-table th { background: var(--bg); font-weight: 600; }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .faq-list { margin: 0; padding: 0; list-style: none; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-q {
+      width: 100%;
+      padding: 1rem 0;
+      text-align: left;
+      font: inherit;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-q:hover { color: var(--accent); }
+    .faq-q::after { content: "+"; font-size: 1.25rem; }
+    .faq-item.open .faq-q::after { content: "−"; }
+    .faq-a { padding: 0 0 1rem; color: var(--muted); display: none; }
+    .faq-item.open .faq-a { display: block; }
+    footer {
+      padding: 2rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-backdrop.visible { display: flex; }
+    .modal {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
+    }
+    .modal h3 { margin-bottom: 1rem; }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 0;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal .checkbox-group { margin: 1rem 0; }
+    .error-msg { color: #dc3545; font-size: .875rem; margin-top: .25rem; display: none; }
+    .error-msg.visible { display: block; }
+    @media (min-width: 600px) {
+      .steps { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero" id="hero">
+      <div class="container">
+        <h1>See how much a standard 6.6kW solar system could save you each year</h1>
+        <p class="hero-sub">Answer 5 quick questions and get an instant preview of your energy profile. Unlock the full result for $199.</p>
+        <div class="hero-cta">
+          <a href="#form" class="btn" id="cta-start">Start 2-minute check</a>
+          <a href="#how-it-works" class="btn btn-secondary">How it works</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="container">
+        <h2 class="section-title">How it works</h2>
+        <div class="steps">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <h3>Answer 5 questions</h3>
+            <p>Your bill range, when you're home, and major appliances.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <h3>Instant preview</h3>
+            <p>See your estimated usage band and what it means—free.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <h3>Unlock $199</h3>
+            <p>Get the full result with savings and recommendations.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="form-section">
+      <div class="container">
+        <h2 class="section-title">Your energy snapshot</h2>
+        <div class="progress-wrap">
+          <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-text" id="progress-text">Step 1 of 6</p>
+        </div>
+        <form id="snapshot-form" novalidate>
+          <div class="form-panel active" id="panel-1" data-step="1">
+            <h3>What's your approximate annual electricity bill?</h3>
+            <p class="muted">Select the range that best matches your last 12 months.</p>
+            <div class="option-group" role="group" aria-label="Annual bill range">
+              <button type="button" class="option-btn" data-value="under_2000">&lt;$2,000</button>
+              <button type="button" class="option-btn" data-value="2000_3000">$2,000–$3,000</button>
+              <button type="button" class="option-btn" data-value="3000_4000">$3,000–$4,000</button>
+              <button type="button" class="option-btn" data-value="4000_5000">$4,000–$5,000</button>
+              <button type="button" class="option-btn" data-value="5000_plus">$5,000+</button>
+            </div>
+            <input type="hidden" name="annualBillBand" id="annualBillBand" value="">
+            <div class="form-nav">
+              <span></span>
+              <button type="button" class="btn" id="next-1">Next</button>
+            </div>
+          </div>
+          <div class="form-panel" id="panel-2" data-step="2">
+            <h3>Are you usually at home during the day?</h3>
+            <p class="muted">e.g. work from home, retired, part-time.</p>
+            <div class="option-group" role="group" aria-label="Daytime at home">
+              <button type="button" class="option-btn" data-value="yes">Yes</button>
+              <button type="button" class="option-btn" data-value="no">No</button>
+            </div>
+            <input type="hidden" name="daytimeAtHome" id="daytimeAtHome" value="">
+            <div class="form-nav">
+              <button type="button" class="btn btn-secondary" id="back-2">Back</button>
+              <button type="button" class="btn" id="next-2">Next</button>
+            </div>
+          </div>
+          <div class="form-panel" id="panel-3" data-step="3">
+            <h3>Is your home all-electric (no gas)?</h3>
+            <div class="option-group" role="group" aria-label="All electric no gas">
+              <button type="button" class="option-btn" data-value="yes">Yes</button>
+              <button type="button" class="option-btn" data-value="no">No</button>
+            </div>
+            <input type="hidden" name="allElectricNoGas" id="allElectricNoGas" value="">
+            <div class="form-nav">
+              <button type="button" class="btn btn-secondary" id="back-3">Back</button>
+              <button type="button" class="btn" id="next-3">Next</button>
+            </div>
+          </div>
+          <div class="form-panel" id="panel-4" data-step="4">
+            <h3>Which of these do you have? (Select all that apply)</h3>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="bigLoads" value="ducted_ac"> Ducted air conditioning</label>
+              <label><input type="checkbox" name="bigLoads" value="electric_hot_water"> Electric hot water</label>
+              <label><input type="checkbox" name="bigLoads" value="electric_cooking"> Electric cooking</label>
+              <label><input type="checkbox" name="bigLoads" value="pool"> Pool (pump/heating)</label>
+              <label><input type="checkbox" name="bigLoads" value="heat_pump_hot_water"> Heat pump hot water</label>
+            </div>
+            <div class="form-nav">
+              <button type="button" class="btn btn-secondary" id="back-4">Back</button>
+              <button type="button" class="btn" id="next-4">Next</button>
+            </div>
+          </div>
+          <div class="form-panel" id="panel-5" data-step="5">
+            <h3>Are you planning to get an EV (or already have one)?</h3>
+            <div class="option-group" role="group" aria-label="EV plan">
+              <button type="button" class="option-btn" data-value="yes">Yes</button>
+              <button type="button" class="option-btn" data-value="no">No</button>
+            </div>
+            <input type="hidden" name="evPlan" id="evPlan" value="">
+            <div class="form-nav">
+              <button type="button" class="btn btn-secondary" id="back-5">Back</button>
+              <button type="button" class="btn" id="next-5">Next</button>
+            </div>
+          </div>
+          <div class="form-panel" id="panel-6" data-step="6">
+            <h3>Almost there</h3>
+            <p>Enter your email to see your free energy profile. Name and phone are optional.</p>
+            <label for="email">Email <span aria-hidden="true">*</span></label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+            <p class="error-msg" id="email-error">Please enter a valid email address.</p>
+            <label for="name">Name (optional)</label>
+            <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name">
+            <label for="phone">Phone (optional)</label>
+            <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" autocomplete="tel">
+            <div class="form-nav">
+              <button type="button" class="btn btn-secondary" id="back-6">Back</button>
+              <button type="submit" class="btn" id="submit-btn">See my profile</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="results-section" id="results-section">
+      <div class="container">
+        <h2 class="section-title">Your results</h2>
+        <div class="profile-card" id="free-profile">
+          <h3>Your energy profile</h3>
+          <p class="usage-band" id="usage-band"></p>
+          <p id="what-this-means"></p>
+          <div class="accordion" id="assumptions-accordion">
+            <div class="accordion-item">
+              <button type="button" class="accordion-head" aria-expanded="false">Assumptions used</button>
+              <div class="accordion-body" id="assumptions-body"></div>
+            </div>
+          </div>
+        </div>
+        <div class="locked-box">
+          <div class="blur-content" aria-hidden="true">
+            <p>Full result: annual savings estimate, payback, and tailored recommendations appear here after unlock.</p>
+          </div>
+          <div class="unlock-overlay">
+            <p><strong>Unlock full result – $199</strong></p>
+            <button type="button" class="btn" id="unlock-btn">Unlock full result – $199</button>
+            <p class="credit-note">One-off payment. Credit card secure. Better Home Technology Pty Ltd.</p>
+          </div>
+        </div>
+        <h3 style="margin-top: 2rem;">Lite vs Pro</h3>
+        <table class="comparison-table" aria-label="Comparison Lite vs Pro">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Energy Insight Lite</th>
+              <th>Energy Insight Pro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Price</td>
+              <td>$199</td>
+              <td>From $990</td>
+            </tr>
+            <tr>
+              <td>Usage profile</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Savings estimate (6.6kW)</td>
+              <td>Yes</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Written recommendation</td>
+              <td>No</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>Tariff &amp; strategy</td>
+              <td>No</td>
+              <td>Yes</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <h2 class="section-title">FAQ</h2>
+        <ul class="faq-list">
+          <li class="faq-item">
+            <button type="button" class="faq-q">Will this get me a solar quote or install?</button>
+            <p class="faq-a">No. Energy Insight gives you an independent view of your usage and potential savings. It does not arrange quotes or installation.</p>
+          </li>
+          <li class="faq-item">
+            <button type="button" class="faq-q">How accurate is the estimate?</button>
+            <p class="faq-a">The free profile is based on your bill band and answers; we apply standard assumptions. Accuracy improves with the full unlock and real usage data.</p>
+          </li>
+          <li class="faq-item">
+            <button type="button" class="faq-q">Why does the full result cost $199?</button>
+            <p class="faq-a">The full result includes savings calculations, payback, and recommendations. The one-off fee covers analysis and delivery.</p>
+          </li>
+          <li class="faq-item">
+            <button type="button" class="faq-q">What if I'm not sure about my bill?</button>
+            <p class="faq-a">Pick the range that best matches your last 12 months. The profile uses midpoints; being roughly right is enough for the snapshot.</p>
+          </li>
+          <li class="faq-item">
+            <button type="button" class="faq-q">Refund policy</button>
+            <p class="faq-a">Contact us at info@bhtechnology.com.au. We'll work with you if the product doesn't meet the described scope.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p><strong>Better Home Technology Pty Ltd</strong></p>
+        <p><a href="mailto:info@bhtechnology.com.au">info@bhtechnology.com.au</a> · <a href="tel:0493208540">0493 208 540</a></p>
+        <p>Your information is used only to generate your profile and, if you opt in, to notify you when the payment step is ready. We don't sell your data.</p>
+      </div>
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="unlock-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal">
+      <button type="button" class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <h3 id="modal-title">Payment step coming next</h3>
+      <p>The full payment flow is being added. You can request an email when it's ready.</p>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="email-when-ready" name="emailWhenReady"> Email me when it's ready</label>
+      </div>
+      <button type="button" class="btn" id="unlock-modal-submit">OK</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      window.__events = [];
+      var BAND_MIDPOINTS = { under_2000: 1500, 2000_3000: 2500, 3000_4000: 3500, 4000_5000: 4500, 5000_plus: 6000 };
+      var TARIFF = 0.35;
+
+      function track(eventName, params) {
+        var payload = { event: eventName, params: params || {}, ts: new Date().toISOString() };
+        console.log('[track]', payload);
+        window.__events.push(payload);
+      }
+
+      track('page_open', {});
+
+      var currentStep = 1;
+      var totalSteps = 6;
+      var formData = {};
+
+      var progressFill = document.getElementById('progress-fill');
+      var progressText = document.getElementById('progress-text');
+      var form = document.getElementById('snapshot-form');
+      var resultsSection = document.getElementById('results-section');
+      var unlockBtn = document.getElementById('unlock-btn');
+      var unlockModal = document.getElementById('unlock-modal');
+      var modalClose = document.getElementById('modal-close');
+      var unlockModalSubmit = document.getElementById('unlock-modal-submit');
+      var emailInput = document.getElementById('email');
+      var emailError = document.getElementById('email-error');
+
+      function updateProgress() {
+        var pct = (currentStep / totalSteps) * 100;
+        progressFill.style.width = pct + '%';
+        progressFill.setAttribute('aria-valuenow', Math.round(pct));
+        progressText.textContent = 'Step ' + currentStep + ' of ' + totalSteps;
+      }
+
+      function showPanel(step) {
+        document.querySelectorAll('.form-panel').forEach(function(p) {
+          p.classList.toggle('active', parseInt(p.getAttribute('data-step'), 10) === step);
+        });
+        currentStep = step;
+        updateProgress();
+        track('question_view', { step: step });
+      }
+
+      function selectOption(panelId, name, value) {
+        var panel = document.getElementById(panelId);
+        if (!panel) return;
+        var input = panel.querySelector('input[name="' + name + '"]');
+        if (input) {
+          input.value = value;
+          formData[name] = value;
+        }
+        panel.querySelectorAll('.option-btn[data-value]').forEach(function(btn) {
+          btn.classList.toggle('selected', btn.getAttribute('data-value') === value);
+        });
+        track('question_answer', { step: currentStep, question: name, value: value });
+      }
+
+      function getBigLoads() {
+        var checkboxes = form.querySelectorAll('input[name="bigLoads"]:checked');
+        return Array.prototype.map.call(checkboxes, function(c) { return c.value; });
+      }
+
+      document.getElementById('cta-start').addEventListener('click', function() {
+        document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        track('snapshot_start', {});
+      });
+
+      document.querySelectorAll('#panel-1 .option-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          selectOption('panel-1', 'annualBillBand', btn.getAttribute('data-value'));
+        });
+      });
+      document.querySelectorAll('#panel-2 .option-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          selectOption('panel-2', 'daytimeAtHome', btn.getAttribute('data-value'));
+        });
+      });
+      document.querySelectorAll('#panel-3 .option-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          selectOption('panel-3', 'allElectricNoGas', btn.getAttribute('data-value'));
+        });
+      });
+      document.querySelectorAll('#panel-4 input[name="bigLoads"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          formData.bigLoads = getBigLoads();
+          track('question_answer', { step: 4, question: 'bigLoads', value: formData.bigLoads });
+        });
+      });
+      document.querySelectorAll('#panel-5 .option-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          selectOption('panel-5', 'evPlan', btn.getAttribute('data-value'));
+        });
+      });
+
+      function goNext(n) {
+        if (n <= totalSteps) showPanel(n);
+      }
+      function goBack(n) {
+        if (n >= 1) showPanel(n);
+      }
+      document.getElementById('next-1').addEventListener('click', function() {
+        if (formData.annualBillBand) goNext(2);
+      });
+      document.getElementById('back-2').addEventListener('click', function() { goBack(1); });
+      document.getElementById('next-2').addEventListener('click', function() {
+        if (formData.daytimeAtHome) goNext(3);
+      });
+      document.getElementById('back-3').addEventListener('click', function() { goBack(2); });
+      document.getElementById('next-3').addEventListener('click', function() {
+        if (formData.allElectricNoGas) goNext(4);
+      });
+      document.getElementById('back-4').addEventListener('click', function() { goBack(3); });
+      document.getElementById('next-4').addEventListener('click', function() { goNext(5); });
+      document.getElementById('back-5').addEventListener('click', function() { goBack(4); });
+      document.getElementById('next-5').addEventListener('click', function() {
+        if (formData.evPlan) goNext(6);
+      });
+      document.getElementById('back-6').addEventListener('click', function() { goBack(5); });
+
+      function validateEmail() {
+        var v = (emailInput.value || '').trim();
+        var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        var ok = re.test(v);
+        emailInput.classList.toggle('error', !ok);
+        emailError.classList.toggle('visible', !ok);
+        return ok;
+      }
+      emailInput.addEventListener('blur', validateEmail);
+      emailInput.addEventListener('input', function() {
+        emailInput.classList.remove('error');
+        emailError.classList.remove('visible');
+      });
+
+      function calcProfile() {
+        var band = formData.annualBillBand;
+        var mid = BAND_MIDPOINTS[band];
+        if (mid == null) return null;
+        var annualKwh = mid / TARIFF;
+        var low = Math.round(annualKwh * 0.9);
+        var high = Math.round(annualKwh * 1.1);
+        var daytime = formData.daytimeAtHome === 'yes';
+        var allElectric = formData.allElectricNoGas === 'yes';
+        var bigLoads = formData.bigLoads || [];
+        var evPlan = formData.evPlan === 'yes';
+        var selfConsumptionNote = 'You use more power during the day.';
+        if (!daytime) selfConsumptionNote = "You're often out during the day, so a smaller share of solar may be self-consumed.";
+        if (allElectric) selfConsumptionNote += ' All-electric homes tend to benefit more from solar.';
+        if (bigLoads.length) selfConsumptionNote += ' Major loads (e.g. pool, AC) affect when you use power and how much you can self-consume.';
+        if (evPlan) selfConsumptionNote += ' An EV can increase usage and the value of solar if charged in the right windows.';
+        return {
+          annualKwh: annualKwh,
+          low: low,
+          high: high,
+          assumptions: [
+            'Bill band midpoint: $' + mid + ' → ' + Math.round(annualKwh) + ' kWh/year at $' + TARIFF + '/kWh.',
+            'Usage band: ±10% → ' + low + '–' + high + ' kWh/year.',
+            'Daytime at home: ' + (daytime ? 'Yes' : 'No') + '.',
+            'All-electric: ' + (allElectric ? 'Yes' : 'No') + '.',
+            'Big loads: ' + (bigLoads.length ? bigLoads.join(', ') : 'None selected') + '.',
+            'EV plan: ' + (evPlan ? 'Yes' : 'No') + '.'
+          ],
+          whatThisMeans: selfConsumptionNote
+        };
+      }
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        formData.email = (emailInput.value || '').trim();
+        formData.name = (document.getElementById('name').value || '').trim();
+        formData.phone = (document.getElementById('phone').value || '').trim();
+        if (!validateEmail()) return;
+        track('snapshot_complete', { email: formData.email });
+        var profile = calcProfile();
+        if (!profile) return;
+        document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
+        document.getElementById('what-this-means').textContent = profile.whatThisMeans;
+        document.getElementById('assumptions-body').innerHTML = '<ul><li>' + profile.assumptions.join('</li><li>') + '</li></ul>';
+        resultsSection.classList.add('visible');
+        document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      unlockBtn.addEventListener('click', function() {
+        track('unlock_click', {});
+        unlockModal.classList.add('visible');
+        unlockModal.setAttribute('aria-hidden', 'false');
+        document.getElementById('email-when-ready').focus();
+      });
+
+      function closeModal() {
+        unlockModal.classList.remove('visible');
+        unlockModal.setAttribute('aria-hidden', 'true');
+      }
+      modalClose.addEventListener('click', closeModal);
+      unlockModal.addEventListener('click', function(e) {
+        if (e.target === unlockModal) closeModal();
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && unlockModal.classList.contains('visible')) closeModal();
+      });
+
+      unlockModalSubmit.addEventListener('click', function() {
+        var emailMe = document.getElementById('email-when-ready').checked;
+        track('unlock_modal_submit', { emailWhenReady: emailMe });
+        closeModal();
+      });
+
+      document.querySelectorAll('.accordion-head').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var item = btn.closest('.accordion-item');
+          item.classList.toggle('open');
+          btn.setAttribute('aria-expanded', item.classList.contains('open'));
+        });
+      });
+      document.querySelectorAll('.faq-q').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var item = btn.closest('.faq-item');
+          var isOpen = item.classList.toggle('open');
+          document.querySelectorAll('.faq-item').forEach(function(other) {
+            if (other !== item) other.classList.remove('open');
+          });
+          if (!isOpen) item.classList.remove('open');
+        });
+      });
+
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>
