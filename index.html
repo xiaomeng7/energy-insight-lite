@@ -946,7 +946,14 @@
         window.__events.push(payload);
       }
 
+      function trackEvent(name, params) {
+        if (typeof gtag === 'function') {
+          gtag('event', name, params || {});
+        }
+      }
+
       track('page_open', {});
+      window.addEventListener('load', function() { trackEvent('page_open'); });
 
       var currentStep = 1;
       var totalSteps = 6;
@@ -1008,6 +1015,7 @@
       if (bridgeCta) {
         bridgeCta.addEventListener('click', function() {
           track('bridge_cta_click', {});
+          trackEvent('bridge_cta_click');
           track('snapshot_start', {});
           var section = document.getElementById('form-section');
           if (section) section.scrollIntoView({ behavior: 'smooth' });
@@ -1136,6 +1144,7 @@
         formData.phone = (document.getElementById('phone').value || '').trim();
         if (!validateEmail()) return;
         track('snapshot_complete', { email: formData.email });
+        trackEvent('snapshot_complete');
         var profile = calcProfile();
         if (!profile) return;
         document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
@@ -1175,9 +1184,11 @@
             if (emailError) { emailError.classList.add('visible'); emailError.textContent = 'Please enter your email to unlock (same as in the form above).'; }
             if (emailInput) { emailInput.focus(); }
             track('lite_unlock_click', { source: 'lite_paid', email_present: false });
+            trackEvent('lite_unlock_click');
             return;
           }
           track('lite_unlock_click', { source: 'lite_paid', email_present: true, decisionLabel: calcFullResult() ? calcFullResult().outlook : null });
+          trackEvent('lite_unlock_click');
           var payload = { name: (formData.name || '').trim(), email: email, phone: (formData.phone || '').trim(), liteSnapshot: buildLiteSnapshot() };
           unlockBtn.disabled = true;
           unlockBtn.textContent = 'Redirecting…';
@@ -1190,6 +1201,7 @@
               if (result.ok && result.data.url) {
                 try { sessionStorage.setItem('lite_formData', JSON.stringify(formData)); } catch (e) {}
                 track('lite_checkout_redirect', { source: 'lite_paid' });
+                trackEvent('lite_checkout_redirect');
                 window.location.href = result.data.url;
               } else {
                 unlockBtn.disabled = false;
@@ -1277,6 +1289,7 @@
               if (stored) { try { var o = JSON.parse(stored); if (o && typeof o === 'object') formData = o; } catch (e) {} }
             } catch (e) {}
             track('lite_payment_verified', { source: 'lite_paid', creditAmount: data.creditAmount });
+            trackEvent('lite_payment_verified', { value: 199, currency: 'AUD' });
             if (window.history && window.history.replaceState) window.history.replaceState({}, '', window.location.pathname || '/');
             if (resultsSection) resultsSection.classList.add('visible');
             renderFullResult();
