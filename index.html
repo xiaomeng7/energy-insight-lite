@@ -315,6 +315,7 @@
       background: rgba(255,255,255,.85);
     }
     .locked-box .unlock-overlay .btn { margin-top: .5rem; }
+    .unlock-urgency { font-size: 1rem; font-weight: 600; margin: 0 0 .75rem; color: var(--text); }
     .locked-summary { font-size: 18px; margin-bottom: 10px; }
     .unlock-note { font-size: 13px; opacity: 0.7; margin-top: 6px; }
     .result-confirmation { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
@@ -458,7 +459,7 @@
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
         <h1>Your electricity bill went up again.</h1>
-        <p class="sub">But does solar actually fix it?</p>
+        <p class="sub">And no one can tell you if solar is actually worth it.</p>
         <button type="button" onclick="scrollToCheck()">Check my numbers ↓</button>
       </div>
     </section>
@@ -626,6 +627,7 @@
             <p class="locked-line">EV impact note (locked)</p>
           </div>
           <div class="unlock-overlay">
+            <p class="unlock-urgency">Most people pay $15,000–$30,000 without checking this.</p>
             <button type="button" class="btn" id="unlock-btn">See the real numbers — $199</button>
             <p class="unlock-note">$199 credited if you proceed with Advisory Pro.</p>
           </div>
@@ -844,7 +846,7 @@
 
         html += '<div class="pro-upgrade-box">';
         html += '<h3>Before committing $15k–$30k</h3>';
-        html += '<p>Confirm this decision with a 15-minute independent advisory call.</p>';
+        html += '<p>Before you sign anything. Confirm this with a 15-minute independent review.</p>';
         html += '<a href="https://advisory.bhtechnology.com.au/#request-review" class="pro-btn" target="_blank" rel="noopener noreferrer">Book Advisory Call</a>';
         html += '</div>';
 
