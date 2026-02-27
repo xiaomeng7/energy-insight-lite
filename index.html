@@ -315,6 +315,14 @@
       background: rgba(255,255,255,.85);
     }
     .locked-box .unlock-overlay .btn { margin-top: .5rem; }
+    .locked-summary { font-size: 18px; margin-bottom: 10px; }
+    .unlock-note { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+    .result-confirmation { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
+    .pro-upgrade-box { margin-top: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; }
+    .pro-upgrade-box h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .pro-upgrade-box p { margin: 0 0 1rem; font-size: 0.9375rem; }
+    .pro-upgrade-box .pro-btn { display: inline-block; padding: 0.6rem 1.2rem; background: var(--accent); color: #fff; border-radius: var(--radius); text-decoration: none; font-weight: 500; }
+    .pro-upgrade-box .pro-btn:hover { background: var(--accent-hover); }
     .credit-note { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
     .credit-emphasis { font-size: .875rem; font-weight: 600; color: var(--text); margin-top: 0.5rem; }
     .comparison-table {
@@ -608,13 +616,18 @@
         <!-- B) LOCKED CARD (visible when NOT unlocked) -->
         <div class="locked-box" id="locked-box">
           <div class="blur-content" aria-hidden="true">
+            <div class="locked-summary">
+              <strong>Financial Decision:</strong>
+              <span class="blurred">Financially reasonable (locked)</span>
+            </div>
             <p class="locked-line">Estimated annual savings: $X–$Y (locked)</p>
             <p class="locked-line">Estimated payback: A–B years (locked)</p>
             <p class="locked-line">Battery direction (locked)</p>
             <p class="locked-line">EV impact note (locked)</p>
           </div>
           <div class="unlock-overlay">
-            <button type="button" class="btn" id="unlock-btn">Unlock full results — $199 (credited if you proceed with Pro)</button>
+            <button type="button" class="btn" id="unlock-btn">See the real numbers — $199</button>
+            <p class="unlock-note">$199 credited if you proceed with Advisory Pro.</p>
           </div>
         </div>
         <p class="debug-reset hidden" id="debug-reset"><a href="#" id="reset-unlock-link">Reset unlock (for testing)</a></p>
@@ -801,9 +814,11 @@
         if (result.daytime) outlookRationale += ' Daytime use supports self-consumption.';
         if (result.allElectric) outlookRationale += ' All-electric homes often benefit more.';
         var showCapacityAdvisory = result.allElectric || result.evPlan || result.bigLoads.indexOf('ducted_ac') !== -1;
+        var confirmationText = result.outlook === 'Financially reasonable' ? 'Based on your answers, solar appears financially reasonable for your home.' : result.outlook === 'Needs deeper review' ? 'Based on your answers, solar is conditional – further review recommended for your home.' : 'Based on your answers, solar does not appear financially ideal for your home.';
 
         var html = '';
         var paidUnlock = typeof localStorage !== 'undefined' && localStorage.getItem('lite_paid') === 'true';
+        html += '<p class="result-confirmation">' + escapeHtml(confirmationText) + '</p>';
         html += '<div class="report-card report-header">';
         html += '<h2>Energy Decision Summary (Lite)</h2>';
         if (paidUnlock) html += '<p class="payment-confirmed" style="margin:0.5rem 0 0;font-size:0.9375rem;color:var(--muted);">Unlocked. Credit will apply if you proceed with Pro.</p>';
@@ -825,6 +840,12 @@
         html += '<div class="report-card decision-outlook">';
         html += '<span class="icon" aria-hidden="true">' + result.outlookIcon + '</span>';
         html += '<div><p class="label">Decision outlook: ' + result.outlook + '</p><p>' + outlookRationale + '</p></div>';
+        html += '</div>';
+
+        html += '<div class="pro-upgrade-box">';
+        html += '<h3>Before committing $15k–$30k</h3>';
+        html += '<p>Confirm this decision with a 15-minute independent advisory call.</p>';
+        html += '<a href="https://advisory.bhtechnology.com.au/#request-review" class="pro-btn" target="_blank" rel="noopener noreferrer">Book Advisory Call</a>';
         html += '</div>';
 
         html += '<div class="report-card"><h3>What drove this result</h3><ul>';
@@ -1162,13 +1183,13 @@
                 window.location.href = result.data.url;
               } else {
                 unlockBtn.disabled = false;
-                unlockBtn.textContent = 'Unlock full results — $199 (credited if you proceed with Pro)';
+                unlockBtn.textContent = 'See the real numbers — $199';
                 alert(result.data && result.data.error ? result.data.error : 'Could not start checkout. Please try again.');
               }
             })
             .catch(function() {
               unlockBtn.disabled = false;
-              unlockBtn.textContent = 'Unlock full results — $199 (credited if you proceed with Pro)';
+              unlockBtn.textContent = 'See the real numbers — $199';
               alert('Network error. Please try again.');
             });
         });
