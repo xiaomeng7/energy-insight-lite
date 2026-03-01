@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <!--
-  CHANGELOG (refactor): Direct-interaction hero → 2-minute check → free preview → paid unlock → full result.
-  - SECTION 0: Full-screen hero (100vh) with bill-night.png, dark overlay, emotional copy; Step 1 options rendered in hero (no scroll to start). No Bridge section.
+  CHANGELOG (MAX-1 hero test): BLEEDING MONEY ultra-conflict hero for Facebook-first landing.
+  - Hero: H1 "YOUR POWER BILL IS BLEEDING MONEY.", subhead, micro-proof line; Q1 (quarterly bill) + Q2 (usage timing); CTA "SHOW ME IF I'M OVERPAYING". Above-fold on mobile. No banned words (solar, battery, $199, etc.).
+  - Q1 options: Under $600, $600–$1,200, $1,200–$2,000, $2,000+ → map to annualBillBand.
+  - Q2 options: Mostly daytime, Mostly night, Not sure → map to daytimeAtHome.
+  - CTA triggers same flow as previous Q2 selection (processing → results). hero_variant: max_bleeding_money_v1.
+  - Previous: Direct-interaction hero → 2-minute check → free preview → paid unlock → full result.
   - SECTION 1: Multi-step form (Step 2+) shown after hero selection; inline errors on Next when required missing; progress Step X of Y; on complete scroll to results.
   - SECTION 3: (A) Free preview: usage band + brief Assumptions (preview) accordion, bridge sentence only — no savings/payback. (B) Locked card: "See your estimated annual savings" with blurred placeholders; Unlock opens "Payment coming next" modal; on close → render full result. (C) Full result: 7-block report when unlocked (URL ?unlocked=1 or localStorage lite_unlocked).
   - Unlock: click sets localStorage, opens modal; closing modal renders full result (no Stripe).
@@ -117,13 +121,18 @@
       font-size: 46px;
       font-weight: 700;
       margin-bottom: 20px;
+      max-width: 18em;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .hero .sub {
+    .hero .sub, .hero-sub {
       font-size: 18px;
       line-height: 1.6;
       opacity: 0.9;
-      margin-bottom: 30px;
+      margin-bottom: 1rem;
     }
+    .hero-micro-proof { font-size: 0.875rem; opacity: 0.85; margin-bottom: 1.25rem; }
+    .hero-q { font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem; }
     .hero button {
       background: #ff4d4f;
       border: none;
@@ -139,37 +148,83 @@
       background: #ff2a2d;
       transform: scale(1.03);
     }
-    .hero-band-btns {
+    .hero-options {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 0.75rem;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
     }
-    .hero-band-btn {
+    .hero-option-btn {
       min-height: 52px;
-      padding: 0.75rem 1.25rem;
+      min-width: 120px;
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
       font-weight: 500;
       background: rgba(255,255,255,0.2);
       border: 2px solid rgba(255,255,255,0.6);
-      border-radius: var(--radius);
+      border-radius: 999px;
       color: white;
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s, transform 0.15s;
     }
-    .hero-band-btn:hover {
+    .hero-option-btn:hover {
       background: rgba(255,255,255,0.35);
       border-color: rgba(255,255,255,0.9);
       transform: scale(1.02);
     }
+    .hero-option-btn.selected {
+      background: #ff4d4f;
+      border-color: #ff4d4f;
+    }
+    .hero-step-1-wrap.hidden { display: none !important; }
+    .hero-step-2 { display: none; }
+    .hero-step-2.visible { display: block; }
     .hero.hidden { display: none; }
-    #form-section.initially-hidden { display: none; }
+    .hero-step-2.hidden { display: none !important; }
+    .hero-cta-btn {
+      width: 100%;
+      max-width: 320px;
+      margin-top: 1.25rem;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #ff4d4f;
+      border: none;
+      border-radius: 999px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255,77,79,0.4);
+      transition: background 0.2s ease, transform 0.15s ease;
+      animation: hero-cta-pulse 2.5s ease-in-out infinite;
+    }
+    .hero-cta-btn:hover { background: #ff2a2d; transform: scale(1.02); }
+    .hero-cta-btn:disabled { opacity: 0.6; cursor: not-allowed; animation: none; }
+    @keyframes hero-cta-pulse { 0%, 100% { box-shadow: 0 6px 20px rgba(255,77,79,0.4); } 50% { box-shadow: 0 8px 28px rgba(255,77,79,0.55); } }
+    .initially-hidden { display: none !important; }
+    .quick-direction {
+      background: #f7f7f7;
+      padding: 2rem 1rem 3rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .processing-state { text-align: center; padding: 3rem 1rem; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+    .processing-text { font-size: 1.1rem; color: var(--muted); animation: fadePulse 1.2s ease-in-out infinite; }
+    @keyframes fadePulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+    .quick-direction p { margin: 0 0 0.75rem; }
+    .quick-direction .qd-intro { font-weight: 600; }
+    .quick-direction .qd-list { margin: 0 0 0.75rem; padding-left: 1.25rem; }
+    .quick-direction .qd-summary { font-weight: 600; color: var(--accent); margin-top: 1rem; }
     @media (max-width: 600px) {
-      .hero h1 { font-size: clamp(1.5rem, 7vw, 2.2rem); }
+      .hero h1 { font-size: clamp(1.5rem, 7.5vw, 2.5rem); }
       .hero .sub { font-size: 1rem; }
-      .hero-band-btns { flex-direction: column; }
-      .hero-band-btn { width: 100%; }
+      .hero-micro-proof { font-size: 0.8125rem; }
+      .hero-options { flex-direction: column; }
+      .hero-option-btn { width: 100%; }
+    }
+    @media (min-width: 520px) {
+      .hero-options.hero-step-1,
+      .hero-step-2 .hero-options { display: grid; grid-template-columns: repeat(2, 1fr); }
     }
     .section {
       padding: 2rem 0;
@@ -300,35 +355,57 @@
     .accordion-body ul { margin: 0; padding-left: 1.25rem; }
     .accordion-body li { margin-bottom: 0.35rem; }
     .accordion-item.open .accordion-body { display: block; }
-    .locked-box {
-      position: relative;
-      background: var(--card);
-      padding: 2rem;
+    #post-payment-form { display: none; background: #f7f7f7; padding: 2rem 1rem; }
+    #post-payment-form.visible { display: block; }
+    #post-payment-form .form-card { max-width: 560px; margin: 0 auto; }
+    #post-payment-form .form-row { margin-bottom: 1.25rem; }
+    #post-payment-form label { display: block; margin-bottom: 0.35rem; font-weight: 500; }
+    #post-payment-form input[type="text"],
+    #post-payment-form input[type="email"],
+    #post-payment-form input[type="tel"] { width: 100%; padding: 0.6rem .75rem; }
+    .free-result-card .free-result-cta { font-weight: 600; margin-top: 1rem; }
+    .free-result-card .free-result-range { margin-top: 1.25rem; }
+    .free-result-card .free-result-impact { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .free-result-card .free-result-upgrade { font-weight: 600; margin-top: 1rem; font-style: italic; }
+    .transition-heading { font-size: 1.25rem; font-weight: 600; margin: 2rem 0 1rem; text-align: center; color: var(--text); }
+    .bridge-section {
+      background: #f8f9fa;
+      padding: 1.25rem 1.5rem;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
       margin-bottom: 1.5rem;
-      overflow: hidden;
+      border: 1px solid var(--border);
     }
-    .locked-box .blur-content {
-      filter: blur(8px);
-      pointer-events: none;
-      user-select: none;
-      min-height: 120px;
+    .bridge-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; color: var(--text); }
+    .bridge-body { font-size: 0.9375rem; color: var(--muted); margin: 0 0 0.5rem; line-height: 1.5; }
+    .bridge-subline { font-size: 0.875rem; color: var(--muted); margin: 0; font-style: italic; }
+    .locked-box {
+      background: #f5f5f5;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border);
     }
-    .locked-box .locked-line { margin: 0.5rem 0; }
-    .locked-box .unlock-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255,255,255,.85);
+    .locked-headline { font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--text); }
+    .locked-intro { font-size: 0.9375rem; color: var(--muted); margin: 0 0 1rem; }
+    .locked-body { font-size: 0.9375rem; margin: 0 0 0.5rem; }
+    .locked-list { margin: 0 0 1rem; padding-left: 1.25rem; font-size: 0.9375rem; }
+    .locked-subline { font-size: 0.875rem; color: var(--muted); margin: 0 0 1.25rem; }
+    .locked-cards { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-bottom: 1.5rem; }
+    @media (min-width: 520px) { .locked-cards { grid-template-columns: repeat(2, 1fr); } }
+    .locked-card {
+      background: #fff;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
     }
-    .locked-box .unlock-overlay .btn { margin-top: .5rem; }
-    .unlock-urgency { font-size: 1rem; font-weight: 600; margin: 0 0 .75rem; color: var(--text); }
-    .locked-summary { font-size: 18px; margin-bottom: 10px; }
-    .unlock-note { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+    .locked-card-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .locked-card-title { font-size: 0.9375rem; font-weight: 600; margin: 0 0 0.35rem; color: var(--text); }
+    .locked-card-number { font-size: 1.5rem; font-weight: 700; color: var(--text); opacity: 0.5; margin: 0.35rem 0; }
+    .locked-card-subline { font-size: 0.8125rem; color: var(--muted); margin: 0.25rem 0; }
+    .locked-card-lock { font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0; }
+    .locked-cta-wrap { background: #fff; padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); }
+    .locked-cta-wrap .btn { width: 100%; margin-top: 0.25rem; }
+    .unlock-note { font-size: 0.75rem; color: var(--muted); margin: 0.5rem 0 0; text-align: center; }
     .result-confirmation { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
     .pro-upgrade-box { margin-top: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; }
     .pro-upgrade-box h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
@@ -465,23 +542,42 @@
 </head>
 <body>
   <main>
-    <!-- Hero — interactive first question -->
+    <!-- Hero — MAX-1 BLEEDING MONEY -->
     <section class="hero" id="section-0">
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <h1 id="hero-h1">Electricity bill up again?</h1>
-        <p class="sub" id="hero-sub">Let's see what category your home falls into.</p>
-        <div class="hero-band-btns" role="group" aria-label="Annual bill range">
-          <button type="button" class="hero-band-btn" data-value="under_2000">&lt;$2,000</button>
-          <button type="button" class="hero-band-btn" data-value="2000_3000">$2,000–$3,000</button>
-          <button type="button" class="hero-band-btn" data-value="3000_4000">$3,000–$4,000</button>
-          <button type="button" class="hero-band-btn" data-value="4000_5000">$4,000–$5,000</button>
-          <button type="button" class="hero-band-btn" data-value="5000_plus">$5,000+</button>
+        <div class="hero-step-1-wrap" id="hero-step-1-wrap">
+          <h1 id="hero-h1">YOUR POWER BILL IS BLEEDING MONEY.</h1>
+          <p class="hero-sub">Most households pay extra every week — without realising why.</p>
+          <p class="hero-micro-proof">It's usually NOT the total usage — it's WHEN you use it.</p>
+          <h2 class="hero-q">What's your average quarterly electricity bill?</h2>
+          <div class="hero-options hero-step-1" role="group" aria-label="Quarterly bill">
+            <button type="button" class="hero-option-btn" data-value="under_600">Under $600</button>
+            <button type="button" class="hero-option-btn" data-value="600_1200">$600–$1,200</button>
+            <button type="button" class="hero-option-btn" data-value="1200_2000">$1,200–$2,000</button>
+            <button type="button" class="hero-option-btn" data-value="2000_plus">$2,000+</button>
+          </div>
+        </div>
+        <div class="hero-step-2" id="hero-step-2">
+          <h2 class="hero-q">When do you use most electricity?</h2>
+          <div class="hero-options" role="group" aria-label="Usage timing">
+            <button type="button" class="hero-option-btn step2-btn" data-value="day">Mostly daytime</button>
+            <button type="button" class="hero-option-btn step2-btn" data-value="night">Mostly night</button>
+            <button type="button" class="hero-option-btn step2-btn" data-value="unsure">Not sure</button>
+          </div>
+          <button type="button" class="hero-cta-btn" id="hero-cta-btn">SHOW ME IF I'M OVERPAYING</button>
         </div>
       </div>
     </section>
 
-    <!-- Form section (hidden until Step 1 answered in hero) -->
+    <!-- Processing state (0.6–0.8s) -->
+    <section id="processing-state" class="initially-hidden processing-state">
+      <div class="container">
+        <p class="processing-text">Analysing typical load timing…</p>
+      </div>
+    </section>
+
+    <!-- Form section (hidden — cold flow uses hero answers) -->
     <section id="form-section" class="initially-hidden">
       <div class="form-card-wrap">
         <p class="form-intro" style="text-align:center;margin-bottom:1.5rem;color:var(--muted);font-size:0.9375rem;">This takes about 2 minutes. No bill upload required. You'll get an instant preview.</p>
@@ -603,35 +699,121 @@
     <section class="results-section" id="results-section">
       <div class="container">
         <h2 class="section-title">Your results</h2>
-        <!-- A) FREE PREVIEW (always visible after completion) -->
-        <div class="profile-card" id="free-profile">
-          <h3>Your energy profile</h3>
-          <p class="usage-band" id="usage-band"></p>
-          <p id="what-this-means"></p>
-          <div class="accordion" id="assumptions-accordion">
-            <div class="accordion-item">
-              <button type="button" class="accordion-head" aria-expanded="false">Assumptions (preview)</button>
-              <div class="accordion-body" id="assumptions-body"></div>
-            </div>
-          </div>
+        <!-- A) FREE PREVIEW — Initial Direction (high-conflict) -->
+        <div class="profile-card free-result-card" id="free-profile">
+          <h3>Initial Direction</h3>
+          <p>Based on patterns similar to yours:</p>
+          <p>You may not be optimising your electricity usage structure.</p>
+          <p>Solar could reduce part of your daytime costs.</p>
+          <p>Battery outcomes are far more sensitive to usage timing than most people realise.</p>
+          <p class="free-result-cta">Before investing $15,000–$30,000,<br>most homeowners never test this properly.</p>
+          <p class="free-result-range">Typical households like yours see:</p>
+          <p class="usage-band free-result-impact">$600–$1,400 annual impact.</p>
+          <p class="free-result-upgrade">The difference depends heavily on configuration.</p>
         </div>
         <!-- FULL RESULT (visible when unlocked) -->
         <div id="full-result" class="full-result hidden" aria-live="polite"></div>
+        <!-- POST-PAYMENT FORM (shown after Stripe return, before full result) -->
+        <div id="post-payment-form" class="initially-hidden">
+          <div class="form-card">
+            <h3 style="margin:0 0 1rem;">A few quick questions to refine your projection</h3>
+            <form id="post-payment-form-el" novalidate>
+              <div class="form-row">
+                <label for="pp-name">Name</label>
+                <input type="text" id="pp-name" name="name" placeholder="Your name" autocomplete="name">
+              </div>
+              <div class="form-row">
+                <label for="pp-email">Email <span style="color:#dc3545">*</span></label>
+                <input type="email" id="pp-email" name="email" required placeholder="you@example.com" autocomplete="email">
+                <p class="error-msg" id="pp-email-error">Please enter a valid email.</p>
+              </div>
+              <div class="form-row">
+                <label for="pp-phone">Phone</label>
+                <input type="tel" id="pp-phone" name="phone" placeholder="04XX XXX XXX" autocomplete="tel">
+              </div>
+              <div class="form-row">
+                <label>Approximate annual electricity bill</label>
+                <div class="option-group" role="group" aria-label="Annual bill range">
+                  <button type="button" class="option-btn pp-option" data-field="annualBillBand" data-value="under_2000">&lt;$2,000</button>
+                  <button type="button" class="option-btn pp-option" data-field="annualBillBand" data-value="2000_3000">$2,000–$3,000</button>
+                  <button type="button" class="option-btn pp-option" data-field="annualBillBand" data-value="3000_4000">$3,000–$4,000</button>
+                  <button type="button" class="option-btn pp-option" data-field="annualBillBand" data-value="4000_5000">$4,000–$5,000</button>
+                  <button type="button" class="option-btn pp-option" data-field="annualBillBand" data-value="5000_plus">$5,000+</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Usually at home during the day?</label>
+                <div class="option-group" role="group" aria-label="Daytime at home">
+                  <button type="button" class="option-btn pp-option" data-field="daytimeAtHome" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn pp-option" data-field="daytimeAtHome" data-value="no">No</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>All-electric (no gas)?</label>
+                <div class="option-group" role="group" aria-label="All electric">
+                  <button type="button" class="option-btn pp-option" data-field="allElectricNoGas" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn pp-option" data-field="allElectricNoGas" data-value="no">No</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Major loads (select all that apply)</label>
+                <div class="chip-group">
+                  <label><input type="checkbox" name="pp-bigLoads" value="ducted_ac"> Ducted AC</label>
+                  <label><input type="checkbox" name="pp-bigLoads" value="electric_hot_water"> Electric hot water</label>
+                  <label><input type="checkbox" name="pp-bigLoads" value="electric_cooking"> Electric cooking</label>
+                  <label><input type="checkbox" name="pp-bigLoads" value="pool"> Pool</label>
+                  <label><input type="checkbox" name="pp-bigLoads" value="heat_pump_hot_water"> Heat pump hot water</label>
+                </div>
+              </div>
+              <div class="form-row">
+                <label>Planning to get an EV (or have one)?</label>
+                <div class="option-group" role="group" aria-label="EV plan">
+                  <button type="button" class="option-btn pp-option" data-field="evPlan" data-value="yes">Yes</button>
+                  <button type="button" class="option-btn pp-option" data-field="evPlan" data-value="no">No</button>
+                </div>
+              </div>
+              <button type="submit" class="btn" style="width:100%;margin-top:0.5rem;">See my full result</button>
+            </form>
+          </div>
+        </div>
+        <!-- Transition heading to paid layer -->
+        <h3 class="transition-heading" id="transition-heading">Want clearer numbers?</h3>
         <!-- B) LOCKED CARD (visible when NOT unlocked) -->
         <div class="locked-box" id="locked-box">
-          <div class="blur-content" aria-hidden="true">
-            <div class="locked-summary">
-              <strong>Financial Decision:</strong>
-              <span class="blurred">Financially reasonable (locked)</span>
+          <h2 class="locked-headline">Detailed Savings Projection – $199</h2>
+          <p class="locked-intro">(Fully credited if you proceed with Advisory Pro)</p>
+          <p class="locked-body">To narrow this estimate, we refine using:</p>
+          <ul class="locked-list">
+            <li>Night usage timing</li>
+            <li>Major appliance loads</li>
+            <li>Tariff assumptions</li>
+            <li>Phase configuration</li>
+          </ul>
+          <p class="locked-subline">After unlocking, you'll answer a few quick questions so we can narrow your savings range.</p>
+          <div class="locked-cards">
+            <div class="locked-card">
+              <div class="locked-card-icon" aria-hidden="true">📊</div>
+              <div class="locked-card-title">Estimated Annual Savings</div>
+              <div class="locked-card-lock">🔒 Unlock your precise range</div>
             </div>
-            <p class="locked-line">Estimated annual savings: $X–$Y (locked)</p>
-            <p class="locked-line">Estimated payback: A–B years (locked)</p>
-            <p class="locked-line">Battery direction (locked)</p>
-            <p class="locked-line">EV impact note (locked)</p>
+            <div class="locked-card">
+              <div class="locked-card-icon" aria-hidden="true">🔋</div>
+              <div class="locked-card-title">Battery ROI Timeline</div>
+              <div class="locked-card-lock">🔒 Includes 3 financial scenarios</div>
+            </div>
+            <div class="locked-card">
+              <div class="locked-card-icon" aria-hidden="true">⚡</div>
+              <div class="locked-card-title">Backup Reality Check</div>
+              <div class="locked-card-lock">🔒 What realistically runs during outages</div>
+            </div>
+            <div class="locked-card">
+              <div class="locked-card-icon" aria-hidden="true">📈</div>
+              <div class="locked-card-title">5-Year Financial Impact</div>
+              <div class="locked-card-lock">🔒 Tariff sensitivity model included</div>
+            </div>
           </div>
-          <div class="unlock-overlay">
-            <p class="unlock-urgency">Most people pay $15,000–$30,000 without checking this.</p>
-            <button type="button" class="btn" id="unlock-btn">See the real numbers — $199</button>
+          <div class="locked-cta-wrap">
+            <button type="button" class="btn" id="unlock-btn">Unlock My Projection — $199</button>
             <p class="unlock-note">$199 credited if you proceed with Advisory Pro.</p>
           </div>
         </div>
@@ -723,19 +905,6 @@
   </div>
 
   <script>
-    const heroVariant = (function () {
-      try {
-        var existing = sessionStorage.getItem("hero_variant");
-        if (existing) return existing;
-        var v = Math.random() < 0.5 ? "A" : "B";
-        sessionStorage.setItem("hero_variant", v);
-        return v;
-      } catch (e) {
-        return Math.random() < 0.5 ? "A" : "B";
-      }
-    })();
-    window.heroVariant = heroVariant;
-
     (function() {
       function run() {
       window.__events = window.__events || [];
@@ -861,9 +1030,8 @@
         html += '</div>';
 
         html += '<div class="pro-upgrade-box">';
-        html += '<h3>Before committing $15k–$30k</h3>';
-        html += '<p>Before you sign anything. Confirm this with a 15-minute independent review.</p>';
-        html += '<a href="https://advisory.bhtechnology.com.au/#request-review" class="pro-btn" target="_blank" rel="noopener noreferrer">Book Advisory Call</a>';
+        html += '<h3>Want to confirm this with real load data?</h3>';
+        html += '<a href="https://advisory.bhtechnology.com.au/#request-review" class="pro-btn" target="_blank" rel="noopener noreferrer">Book Detailed Advisory Review</a>';
         html += '</div>';
 
         html += '<div class="report-card"><h3>What drove this result</h3><ul>';
@@ -888,7 +1056,7 @@
         html += '<div class="next-step-card"><h4>Before committing to solar, confirm the numbers are correct.</h4>';
         html += '<p style="margin:0 0 0.75rem;font-size:0.9375rem;line-height:1.5;">Energy Insight Pro validates whether solar is financially right for your specific home. We measure real load behaviour, review capacity limits, and model tariff impact — so you don\'t rely on installer estimates alone.</p>';
         html += '<ul><li>Confirm if solar truly makes sense</li><li>Validate correct system sizing</li><li>Identify hidden capacity constraints</li><li>Provide written independent recommendation</li></ul>';
-        html += '<button type="button" class="btn" id="pro-cta-btn">Confirm this with a 15-minute advisory call</button>';
+        html += '<button type="button" class="btn" id="pro-cta-btn">Book Detailed Advisory Review</button>';
         html += '<p class="credit-note" style="margin-top:0.5rem;">$199 credited toward Pro</p></div>';
         html += '</div>';
 
@@ -949,7 +1117,7 @@
       }
 
       function track(eventName, params) {
-        var merged = Object.assign({}, params || {}, { hero_variant: window.heroVariant });
+        var merged = Object.assign({}, params || {});
         var payload = { event: eventName, params: merged, ts: new Date().toISOString() };
         console.log('[track]', payload);
         window.__events.push(payload);
@@ -958,22 +1126,20 @@
         }
       }
 
+      var heroVariant = 'max_bleeding_money_v1';
       window.addEventListener('load', function() {
         track('page_open', {});
-        track('hero_variant_view', {});
+        track('hero_variant_view', { hero_variant: heroVariant });
       });
 
-      // Hero A/B content
-      var heroTitle = document.getElementById('hero-h1');
-      var heroSub = document.getElementById('hero-sub');
-      if (heroTitle && heroSub) {
-          if (heroVariant === "A") {
-            heroTitle.textContent = 'Electricity bill up again?';
-            heroSub.textContent = "Let's see what category your home falls into.";
-          } else {
-            heroTitle.textContent = 'Paying more. Using the same.';
-            heroSub.textContent = "Something doesn’t add up.";
-          }
+      function mapColdFlowToFormData(billBand, usageTiming) {
+        var bandMap = { under_600: 'under_2000', 600_1200: '2000_3000', 1200_2000: '3000_4000', 2000_plus: '5000_plus' };
+        var dayMap = { day: 'yes', night: 'no', unsure: 'yes' };
+        formData.annualBillBand = bandMap[billBand] || '2000_3000';
+        formData.daytimeAtHome = dayMap[usageTiming] || 'yes';
+        formData.allElectricNoGas = 'no';
+        formData.bigLoads = [];
+        formData.evPlan = 'no';
       }
 
       var currentStep = 1;
@@ -1033,24 +1199,68 @@
         snapshotStarted = true;
         track('snapshot_start', {});
       }
-      var heroBtns = document.querySelectorAll('.hero-band-btn');
       var heroSection = document.getElementById('section-0');
-      var formSection = document.getElementById('form-section');
-      heroBtns.forEach(function(btn) {
+      var heroStep1Wrap = document.getElementById('hero-step-1-wrap');
+      var heroStep2 = document.getElementById('hero-step-2');
+      var processingState = document.getElementById('processing-state');
+      var step1Btns = document.querySelectorAll('.hero-step-1 .hero-option-btn');
+      var step2Btns = document.querySelectorAll('.hero-option-btn.step2-btn');
+      var billBand = null;
+      var usageTiming = null;
+
+      function proceedFromHero() {
+        if (!billBand || !usageTiming) return;
+        track('hero_cta_click', { step: 2, value: usageTiming });
+        track('snapshot_complete', { billBand: billBand, usageTiming: usageTiming });
+        mapColdFlowToFormData(billBand, usageTiming);
+        if (heroSection) heroSection.classList.add('hidden');
+        if (processingState) {
+          processingState.classList.remove('initially-hidden');
+          processingState.classList.add('visible');
+        }
+        setTimeout(function() {
+          if (processingState) processingState.classList.add('initially-hidden');
+          if (resultsSection) resultsSection.classList.add('visible');
+          var fullEl = document.getElementById('full-result');
+          var lockedEl = document.getElementById('locked-box');
+          if (fullEl) fullEl.classList.add('hidden');
+          if (lockedEl) lockedEl.classList.remove('hidden');
+          document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 600);
+      }
+
+      step1Btns.forEach(function(btn) {
         btn.addEventListener('click', function() {
           var value = btn.getAttribute('data-value');
           if (!value) return;
-          selectOption('panel-1', 'annualBillBand', value);
+          billBand = value;
+          step1Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
           fireSnapshotStart();
-          track('bridge_cta_click');
-          if (heroSection) heroSection.classList.add('hidden');
-          if (formSection) {
-            formSection.classList.remove('initially-hidden');
-            formSection.scrollIntoView({ behavior: 'auto', block: 'start' });
-          }
-          goNext(2);
+          track('hero_cta_click', { step: 1, value: value });
+          if (heroStep1Wrap) heroStep1Wrap.classList.add('hidden');
+          if (heroStep2) { heroStep2.classList.add('visible'); heroStep2.classList.remove('hidden'); }
         });
       });
+
+      step2Btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var value = btn.getAttribute('data-value');
+          if (!value) return;
+          usageTiming = value;
+          step2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
+          var ctaBtn = document.getElementById('hero-cta-btn');
+          if (ctaBtn) ctaBtn.disabled = false;
+        });
+      });
+
+      var heroCtaBtn = document.getElementById('hero-cta-btn');
+      if (heroCtaBtn) {
+        heroCtaBtn.disabled = true;
+        heroCtaBtn.addEventListener('click', function() {
+          if (!billBand || !usageTiming) return;
+          proceedFromHero();
+        });
+      }
       function showStepError(step, show) {
         var err = document.getElementById('error-' + step);
         if (err) err.classList.toggle('visible', !!show);
@@ -1146,11 +1356,11 @@
         var allElectric = formData.allElectricNoGas === 'yes';
         var bigLoads = formData.bigLoads || [];
         var evPlan = formData.evPlan === 'yes';
-        var selfConsumptionNote = 'You use more power during the day.';
-        if (!daytime) selfConsumptionNote = "You're often out during the day, so a smaller share of solar may be self-consumed.";
-        if (allElectric) selfConsumptionNote += ' All-electric homes tend to benefit more from solar.';
-        if (bigLoads.length) selfConsumptionNote += ' Major loads (e.g. pool, AC) affect when you use power and how much you can self-consume.';
-        if (evPlan) selfConsumptionNote += ' An EV can increase usage and the value of solar if charged in the right windows.';
+        var selfConsumptionNote = 'Initial direction suggests higher daytime usage.';
+        if (!daytime) selfConsumptionNote = 'Initial direction suggests lower daytime self-consumption potential.';
+        if (allElectric) selfConsumptionNote += ' All-electric homes may benefit more.';
+        if (bigLoads.length) selfConsumptionNote += ' Major loads may affect self-consumption.';
+        if (evPlan) selfConsumptionNote += ' An EV may add value if charged strategically.';
         return {
           annualKwh: annualKwh,
           low: low,
@@ -1176,9 +1386,9 @@
         track('snapshot_complete', { hasEmail: !!formData.email });
         var profile = calcProfile();
         if (!profile) return;
-        document.getElementById('usage-band').textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
-        document.getElementById('what-this-means').textContent = profile.whatThisMeans + ' This level of usage can significantly affect the financial outcome.';
-        document.getElementById('assumptions-body').innerHTML = '<ul><li>Tariff: $0.35/kWh (estimate).</li><li>System: 6.6kW, ~9,000 kWh/year production.</li></ul>';
+        var ub = document.getElementById('usage-band'); if (ub) ub.textContent = 'Estimated usage: ' + profile.low + '–' + profile.high + ' kWh per year';
+        var wtm = document.getElementById('what-this-means'); if (wtm) wtm.textContent = profile.whatThisMeans + ' Initial direction suggests this usage level may affect the financial outcome.';
+        var ab = document.getElementById('assumptions-body'); if (ab) ab.innerHTML = '<ul><li>Tariff: $0.35/kWh (estimate).</li><li>System: 6.6kW, ~9,000 kWh/year production.</li></ul>';
         resultsSection.classList.add('visible');
         document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
         // Always show locked state first; full result only after unlock (modal) in this session
@@ -1208,15 +1418,8 @@
       }
       if (unlockBtn) {
         unlockBtn.addEventListener('click', function() {
-          var email = (formData.email || (emailInput ? emailInput.value : '')).trim();
-          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            if (emailError) { emailError.classList.add('visible'); emailError.textContent = 'Please enter your email to unlock (same as in the form above).'; }
-            if (emailInput) { emailInput.focus(); }
-            track('lite_unlock_click', { source: 'lite_paid', email_present: false });
-            return;
-          }
-          track('lite_unlock_click', { source: 'lite_paid', email_present: true, decisionLabel: calcFullResult() ? calcFullResult().outlook : null });
-          var payload = { name: (formData.name || '').trim(), email: email, phone: (formData.phone || '').trim(), liteSnapshot: buildLiteSnapshot() };
+          track('unlock_click', { decisionLabel: calcFullResult() ? calcFullResult().outlook : null });
+          var payload = { name: (formData.name || '').trim(), email: (formData.email || '').trim(), phone: (formData.phone || '').trim(), liteSnapshot: buildLiteSnapshot() };
           unlockBtn.disabled = true;
           unlockBtn.textContent = 'Redirecting…';
           fetch(getLiteApiBase() + '/.netlify/functions/createLiteCheckoutSession', {
@@ -1231,13 +1434,13 @@
                 window.location.href = result.data.url;
               } else {
                 unlockBtn.disabled = false;
-                unlockBtn.textContent = 'See the real numbers — $199';
+                unlockBtn.textContent = 'Unlock My Projection — $199';
                 alert(result.data && result.data.error ? result.data.error : 'Could not start checkout. Please try again.');
               }
             })
             .catch(function() {
               unlockBtn.disabled = false;
-              unlockBtn.textContent = 'See the real numbers — $199';
+              unlockBtn.textContent = 'See My Real Numbers — $199';
               alert('Network error. Please try again.');
             });
         });
@@ -1274,8 +1477,9 @@
       });
 
       if (unlockModalSubmit) unlockModalSubmit.addEventListener('click', function() {
-        var emailMe = document.getElementById('email-when-ready').checked;
-        track('unlock_modal_submit', { emailWhenReady: emailMe });
+        var emailMe = document.getElementById('email-when-ready');
+        track('unlock_modal_submit', { emailWhenReady: emailMe ? emailMe.checked : false });
+        try { localStorage.setItem('lite_unlocked', 'true'); } catch (e) {}
         closeModal();
       });
 
@@ -1317,11 +1521,70 @@
             track('lite_payment_verified', { source: 'lite_paid', creditAmount: data.creditAmount, value: 199, currency: 'AUD' });
             if (window.history && window.history.replaceState) window.history.replaceState({}, '', window.location.pathname || '/');
             if (resultsSection) resultsSection.classList.add('visible');
-            renderFullResult();
-            var el = document.getElementById('free-profile');
+            var ppForm = document.getElementById('post-payment-form');
+            var transitionHeading = document.getElementById('transition-heading');
+            var locked = document.getElementById('locked-box');
+            if (ppForm) { ppForm.classList.remove('initially-hidden'); ppForm.classList.add('visible'); }
+            if (transitionHeading) transitionHeading.style.display = 'none';
+            if (locked) locked.style.display = 'none';
+            if (ppForm) {
+              ['annualBillBand', 'daytimeAtHome', 'allElectricNoGas', 'evPlan'].forEach(function(field) {
+                var val = formData[field];
+                if (val) ppForm.querySelectorAll('.pp-option[data-field="' + field + '"][data-value="' + val + '"]').forEach(function(b) { b.classList.add('selected'); });
+              });
+              var big = formData.bigLoads || [];
+              big.forEach(function(v) {
+                var cb = ppForm.querySelector('input[name="pp-bigLoads"][value="' + v + '"]');
+                if (cb) cb.checked = true;
+              });
+            }
+            var el = document.getElementById('post-payment-form');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           })
           .catch(function() {});
+      })();
+
+      (function initPostPaymentForm() {
+        var ppFormEl = document.getElementById('post-payment-form-el');
+        var ppForm = document.getElementById('post-payment-form');
+        if (!ppFormEl || !ppForm) return;
+        ppFormEl.querySelectorAll('.pp-option').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var field = btn.getAttribute('data-field');
+            var value = btn.getAttribute('data-value');
+            if (!field || !value) return;
+            formData[field] = value;
+            ppFormEl.querySelectorAll('.pp-option[data-field="' + field + '"]').forEach(function(b) {
+              b.classList.toggle('selected', b === btn);
+            });
+          });
+        });
+        ppFormEl.querySelectorAll('input[name="pp-bigLoads"]').forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            var checked = ppFormEl.querySelectorAll('input[name="pp-bigLoads"]:checked');
+            formData.bigLoads = Array.prototype.map.call(checked, function(c) { return c.value; });
+          });
+        });
+        ppFormEl.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var emailVal = (document.getElementById('pp-email').value || '').trim();
+          if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+            var err = document.getElementById('pp-email-error');
+            if (err) err.classList.add('visible');
+            return;
+          }
+          formData.email = emailVal;
+          formData.name = (document.getElementById('pp-name').value || '').trim();
+          formData.phone = (document.getElementById('pp-phone').value || '').trim();
+          var ppBigLoads = ppFormEl.querySelectorAll('input[name="pp-bigLoads"]:checked');
+          formData.bigLoads = Array.prototype.map.call(ppBigLoads, function(c) { return c.value; });
+          track('post_payment_form_complete', {});
+          if (ppForm) { ppForm.classList.remove('visible'); ppForm.classList.add('initially-hidden'); }
+          renderFullResult();
+          var fullEl = document.getElementById('full-result');
+          if (fullEl) fullEl.classList.remove('hidden');
+          document.getElementById('full-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       })();
       }
 
