@@ -2,6 +2,7 @@
 <!--
   CHANGELOG (MAX-1 hero test): BLEEDING MONEY ultra-conflict hero for Facebook-first landing.
   - Hero: H1 "YOUR POWER BILL IS BLEEDING MONEY.", subhead, micro-proof line; Q1 (quarterly bill) + Q2 (usage timing); CTA "SHOW ME IF I'M OVERPAYING". Above-fold on mobile. No banned words (solar, battery, $199, etc.).
+  - MAX-1 hero next-screen: Reality Punch strip (THE PART MOST PEOPLE MISS, 3 bullets, punchline, trust anchor, micro CTA) for momentum + form_start lift. Optional sticky "Back to Questions" helper on mobile when user scrolls before answering Q1/Q2.
   - Q1 options: Under $600, $600–$1,200, $1,200–$2,000, $2,000+ → map to annualBillBand.
   - Q2 options: Mostly daytime, Mostly night, Not sure → map to daytimeAtHome.
   - CTA triggers same flow as previous Q2 selection (processing → results). hero_variant: max_bleeding_money_v1.
@@ -538,9 +539,49 @@
     .full-result .next-step-card h4 { margin: 0 0 0.5rem; font-size: 1rem; }
     .full-result .next-step-card ul { margin: 0 0 0.75rem; padding-left: 1.25rem; font-size: .9375rem; }
     .full-result .debug-reset { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
+
+    /* MAX-1 Hero Next Screen — Reality Punch strip */
+    .hero-next {
+      background: #eceef1;
+      padding: 1.5rem 1rem;
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .hero-next .kick { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 1rem; }
+    .hero-next ul { margin: 0 0 1rem; padding-left: 1.25rem; font-size: 0.9375rem; line-height: 1.6; color: var(--text); }
+    .hero-next .punch { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text); }
+    .hero-next .trust { font-size: 0.8125rem; color: var(--muted); margin: 0 0 0.75rem; font-style: italic; }
+    .hero-next .micro-cta { font-size: 0.875rem; font-weight: 500; color: var(--accent); margin: 0; }
+
+    /* Sticky helper — mobile only */
+    .sticky-helper {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--text);
+      color: #fff;
+      padding: 0.6rem 1rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      z-index: 900;
+      box-shadow: 0 -2px 12px rgba(0,0,0,.15);
+    }
+    .sticky-helper.visible { display: flex; }
+    .sticky-helper-text { font-size: 0.8125rem; margin: 0; }
+    .sticky-helper .btn { padding: 0.5rem 0.75rem; font-size: 0.8125rem; white-space: nowrap; flex-shrink: 0; }
+    @media (min-width: 601px) { .sticky-helper { display: none !important; } }
   </style>
 </head>
 <body>
+  <!-- Sticky helper — mobile only, when user scrolls before answering Q1/Q2 -->
+  <div class="sticky-helper" id="sticky-helper">
+    <span class="sticky-helper-text">Quick check: answer 2 questions above</span>
+    <button type="button" class="btn" id="sticky-back-btn">Back to Questions</button>
+  </div>
   <main>
     <!-- Hero — MAX-1 BLEEDING MONEY -->
     <section class="hero" id="section-0">
@@ -568,6 +609,19 @@
           <button type="button" class="hero-cta-btn" id="hero-cta-btn">SHOW ME IF I'M OVERPAYING</button>
         </div>
       </div>
+    </section>
+
+    <!-- MAX-1 Hero Next Screen — Reality Punch strip -->
+    <section class="hero-next" id="hero-next">
+      <p class="kick">THE PART MOST PEOPLE MISS</p>
+      <ul>
+        <li>It's not just "how much" — it's WHEN you use it.</li>
+        <li>Night usage can erase solar savings fast.</li>
+        <li>Batteries can underperform if your load pattern is wrong.</li>
+      </ul>
+      <p class="punch">Small timing mistakes can cost you years.</p>
+      <p class="trust">Not a quote. Not a sales pitch. Just a quick check.</p>
+      <p class="micro-cta">Answer 2 questions above to see your direction.</p>
     </section>
 
     <!-- Processing state (0.6–0.8s) -->
@@ -1133,7 +1187,7 @@
       });
 
       function mapColdFlowToFormData(billBand, usageTiming) {
-        var bandMap = { under_600: 'under_2000', 600_1200: '2000_3000', 1200_2000: '3000_4000', 2000_plus: '5000_plus' };
+        var bandMap = { 'under_600': 'under_2000', '600_1200': '2000_3000', '1200_2000': '3000_4000', '2000_plus': '5000_plus' };
         var dayMap = { day: 'yes', night: 'no', unsure: 'yes' };
         formData.annualBillBand = bandMap[billBand] || '2000_3000';
         formData.daytimeAtHome = dayMap[usageTiming] || 'yes';
@@ -1250,6 +1304,7 @@
           step2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
           var ctaBtn = document.getElementById('hero-cta-btn');
           if (ctaBtn) ctaBtn.disabled = false;
+          if (typeof updateStickyHelper === 'function') updateStickyHelper();
         });
       });
 
@@ -1261,6 +1316,29 @@
           proceedFromHero();
         });
       }
+
+      var stickyHelper = document.getElementById('sticky-helper');
+      var stickyBackBtn = document.getElementById('sticky-back-btn');
+      if (stickyBackBtn && heroSection) {
+        stickyBackBtn.addEventListener('click', function() {
+          heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      function updateStickyHelper() {
+        if (!stickyHelper || !heroSection) return;
+        var isMobile = window.innerWidth < 601;
+        var heroHidden = heroSection.classList.contains('hidden');
+        var notAnswered = !billBand || !usageTiming;
+        var pastHero = window.scrollY > window.innerHeight * 0.6;
+        if (isMobile && !heroHidden && notAnswered && pastHero) {
+          stickyHelper.classList.add('visible');
+        } else {
+          stickyHelper.classList.remove('visible');
+        }
+      }
+      window.addEventListener('scroll', updateStickyHelper);
+      window.addEventListener('resize', updateStickyHelper);
+
       function showStepError(step, show) {
         var err = document.getElementById('error-' + step);
         if (err) err.classList.toggle('visible', !!show);
