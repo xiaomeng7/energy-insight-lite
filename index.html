@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!--
-  CHANGELOG (MAX-1 hero test): BLEEDING MONEY ultra-conflict hero for Facebook-first landing.
-  - Hero: H1 "YOUR POWER BILL IS BLEEDING MONEY.", subhead, micro-proof line; Q1 (quarterly bill) + Q2 (usage timing); CTA "SHOW ME IF I'M OVERPAYING". Above-fold on mobile. No banned words (solar, battery, $199, etc.).
-  - MAX-1 hero next-screen: Reality Punch strip (THE PART MOST PEOPLE MISS, 3 bullets, punchline, trust anchor, micro CTA) for momentum + form_start lift. Optional sticky "Back to Questions" helper on mobile when user scrolls before answering Q1/Q2.
+  CHANGELOG (Zero-friction outcome-first flow): Lift form_start by delaying questions until after one-click outcome.
+  - Hero: 1-click only — H1 "YOUR POWER BILL IS BLEEDING MONEY.", sub "Most households don't know whether solar or a battery would actually reduce costs.", CTA "SHOW MY LIKELY OUTCOME (5 seconds)". No questions above fold. hero_variant: zf_outcome_first_v1.
+  - Flow: CTA → form_start → processing "Analysing typical household patterns…" → Quick Direction card (free, no numbers) → "YES — MATCH IT TO ME" → Q1 (quarterly bill) + Q2 (usage timing) → Matched Direction (tailored) + $600–$1,400 → locked preview. Paid layer only after matched result.
+  - Sticky (mobile): "Tap once to see your likely outcome" + "Show outcome" when user scrolls before first CTA. Triggers same CTA handler.
   - Q1 options: Under $600, $600–$1,200, $1,200–$2,000, $2,000+ → map to annualBillBand.
   - Q2 options: Mostly daytime, Mostly night, Not sure → map to daytimeAtHome.
   - CTA triggers same flow as previous Q2 selection (processing → results). hero_variant: max_bleeding_money_v1.
@@ -132,7 +133,7 @@
       opacity: 0.9;
       margin-bottom: 1rem;
     }
-    .hero-micro-proof { font-size: 0.875rem; opacity: 0.85; margin-bottom: 1.25rem; }
+    .hero-reassurance { font-size: 0.75rem; opacity: 0.8; margin-top: 0.75rem; margin-bottom: 0; }
     .hero-q { font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem; }
     .hero button {
       background: #ff4d4f;
@@ -178,11 +179,7 @@
       background: #ff4d4f;
       border-color: #ff4d4f;
     }
-    .hero-step-1-wrap.hidden { display: none !important; }
-    .hero-step-2 { display: none; }
-    .hero-step-2.visible { display: block; }
     .hero.hidden { display: none; }
-    .hero-step-2.hidden { display: none !important; }
     .hero-cta-btn {
       width: 100%;
       max-width: 320px;
@@ -219,13 +216,11 @@
     @media (max-width: 600px) {
       .hero h1 { font-size: clamp(1.5rem, 7.5vw, 2.5rem); }
       .hero .sub { font-size: 1rem; }
-      .hero-micro-proof { font-size: 0.8125rem; }
       .hero-options { flex-direction: column; }
       .hero-option-btn { width: 100%; }
     }
     @media (min-width: 520px) {
-      .hero-options.hero-step-1,
-      .hero-step-2 .hero-options { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .zf-q1, .zf-q2-wrap .hero-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
     }
     .section {
       padding: 2rem 0;
@@ -540,19 +535,19 @@
     .full-result .next-step-card ul { margin: 0 0 0.75rem; padding-left: 1.25rem; font-size: .9375rem; }
     .full-result .debug-reset { font-size: .75rem; color: var(--muted); margin-top: 1rem; }
 
-    /* MAX-1 Hero Next Screen — Reality Punch strip */
-    .hero-next {
-      background: #eceef1;
-      padding: 1.5rem 1rem;
-      max-width: 640px;
-      margin: 0 auto;
-      text-align: left;
-    }
-    .hero-next .kick { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 1rem; }
-    .hero-next ul { margin: 0 0 1rem; padding-left: 1.25rem; font-size: 0.9375rem; line-height: 1.6; color: var(--text); }
-    .hero-next .punch { font-size: 1rem; font-weight: 700; margin: 0 0 0.5rem; color: var(--text); }
-    .hero-next .trust { font-size: 0.8125rem; color: var(--muted); margin: 0 0 0.75rem; font-style: italic; }
-    .hero-next .micro-cta { font-size: 0.875rem; font-weight: 500; color: var(--accent); margin: 0; }
+    /* Quick Outcome + ZF Questions */
+    .quick-outcome-section { padding: 2rem 0; }
+    .quick-direction-card { background: var(--card); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .quick-direction-card h3 { margin: 0 0 1rem; font-size: 1.25rem; }
+    .quick-direction-card p { margin: 0 0 0.75rem; font-size: 0.9375rem; }
+    .quick-direction-hook { font-weight: 600; margin-top: 1rem !important; }
+    .quick-direction-card .btn { margin-top: 1rem; width: 100%; max-width: 320px; }
+    .zf-questions-section { padding: 2rem 0; background: var(--bg); }
+    .zf-questions-card { background: var(--card); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .zf-questions-card .hero-q { color: var(--text); margin-bottom: 1rem; }
+    .zf-questions-card .hero-option-btn { background: rgba(13, 110, 253, 0.1); border-color: var(--accent); color: var(--accent); }
+    .zf-questions-card .hero-option-btn:hover, .zf-questions-card .hero-option-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .zf-q2-wrap { margin-top: 1.5rem; }
 
     /* Sticky helper — mobile only */
     .sticky-helper {
@@ -577,57 +572,63 @@
   </style>
 </head>
 <body>
-  <!-- Sticky helper — mobile only, when user scrolls before answering Q1/Q2 -->
+  <!-- Sticky helper — mobile only, when user scrolls before first CTA -->
   <div class="sticky-helper" id="sticky-helper">
-    <span class="sticky-helper-text">Quick check: answer 2 questions above</span>
-    <button type="button" class="btn" id="sticky-back-btn">Back to Questions</button>
+    <span class="sticky-helper-text">Tap once to see your likely outcome</span>
+    <button type="button" class="btn" id="sticky-outcome-btn">Show outcome</button>
   </div>
   <main>
-    <!-- Hero — MAX-1 BLEEDING MONEY -->
+    <!-- Hero — Zero-friction 1-click outcome -->
     <section class="hero" id="section-0">
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <div class="hero-step-1-wrap" id="hero-step-1-wrap">
-          <h1 id="hero-h1">YOUR POWER BILL IS BLEEDING MONEY.</h1>
-          <p class="hero-sub">Most households pay extra every week — without realising why.</p>
-          <p class="hero-micro-proof">It's usually NOT the total usage — it's WHEN you use it.</p>
-          <h2 class="hero-q">What's your average quarterly electricity bill?</h2>
-          <div class="hero-options hero-step-1" role="group" aria-label="Quarterly bill">
-            <button type="button" class="hero-option-btn" data-value="under_600">Under $600</button>
-            <button type="button" class="hero-option-btn" data-value="600_1200">$600–$1,200</button>
-            <button type="button" class="hero-option-btn" data-value="1200_2000">$1,200–$2,000</button>
-            <button type="button" class="hero-option-btn" data-value="2000_plus">$2,000+</button>
-          </div>
-        </div>
-        <div class="hero-step-2" id="hero-step-2">
-          <h2 class="hero-q">When do you use most electricity?</h2>
-          <div class="hero-options" role="group" aria-label="Usage timing">
-            <button type="button" class="hero-option-btn step2-btn" data-value="day">Mostly daytime</button>
-            <button type="button" class="hero-option-btn step2-btn" data-value="night">Mostly night</button>
-            <button type="button" class="hero-option-btn step2-btn" data-value="unsure">Not sure</button>
-          </div>
-          <button type="button" class="hero-cta-btn" id="hero-cta-btn">SHOW ME IF I'M OVERPAYING</button>
+        <h1 id="hero-h1">YOUR POWER BILL IS BLEEDING MONEY.</h1>
+        <p class="hero-sub">Most households don't know whether solar or a battery would actually reduce costs.</p>
+        <button type="button" class="hero-cta-btn" id="hero-outcome-cta">SHOW MY LIKELY OUTCOME (5 seconds)</button>
+        <p class="hero-reassurance">No email. No signup. Just a quick direction.</p>
+      </div>
+    </section>
+
+    <!-- Quick Outcome (after first CTA) — generic direction, no numbers -->
+    <section class="quick-outcome-section initially-hidden" id="quick-outcome-section">
+      <div class="container">
+        <div class="profile-card quick-direction-card" id="quick-direction-card">
+          <h3>Quick Direction (Free)</h3>
+          <p>Solar: likely helpful for daytime-heavy usage.</p>
+          <p>Battery: outcomes vary sharply with night usage.</p>
+          <p class="quick-direction-hook">Want this matched to YOUR usage pattern?</p>
+          <button type="button" class="btn hero-cta-btn" id="yes-match-btn">YES — MATCH IT TO ME (2 questions)</button>
         </div>
       </div>
     </section>
 
-    <!-- MAX-1 Hero Next Screen — Reality Punch strip -->
-    <section class="hero-next" id="hero-next">
-      <p class="kick">THE PART MOST PEOPLE MISS</p>
-      <ul>
-        <li>It's not just "how much" — it's WHEN you use it.</li>
-        <li>Night usage can erase solar savings fast.</li>
-        <li>Batteries can underperform if your load pattern is wrong.</li>
-      </ul>
-      <p class="punch">Small timing mistakes can cost you years.</p>
-      <p class="trust">Not a quote. Not a sales pitch. Just a quick check.</p>
-      <p class="micro-cta">Answer 2 questions above to see your direction.</p>
+    <!-- Questions (Q1 + Q2) — revealed after YES click -->
+    <section class="zf-questions-section initially-hidden" id="zf-questions-section">
+      <div class="container">
+        <div class="zf-questions-card">
+          <h2 class="hero-q" id="zf-q1-label">What's your average quarterly electricity bill?</h2>
+          <div class="hero-options zf-q1" role="group" aria-label="Quarterly bill" id="zf-q1">
+            <button type="button" class="hero-option-btn zf-q1-btn" data-value="under_600">Under $600</button>
+            <button type="button" class="hero-option-btn zf-q1-btn" data-value="600_1200">$600–$1,200</button>
+            <button type="button" class="hero-option-btn zf-q1-btn" data-value="1200_2000">$1,200–$2,000</button>
+            <button type="button" class="hero-option-btn zf-q1-btn" data-value="2000_plus">$2,000+</button>
+          </div>
+          <div class="zf-q2-wrap initially-hidden" id="zf-q2-wrap">
+            <h2 class="hero-q">When do you use most electricity?</h2>
+            <div class="hero-options" role="group" aria-label="Usage timing" id="zf-q2">
+              <button type="button" class="hero-option-btn zf-q2-btn" data-value="day">Mostly daytime</button>
+              <button type="button" class="hero-option-btn zf-q2-btn" data-value="night">Mostly night</button>
+              <button type="button" class="hero-option-btn zf-q2-btn" data-value="unsure">Not sure</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Processing state (0.6–0.8s) -->
     <section id="processing-state" class="initially-hidden processing-state">
       <div class="container">
-        <p class="processing-text">Analysing typical load timing…</p>
+        <p class="processing-text" id="processing-text">Analysing typical household patterns…</p>
       </div>
     </section>
 
@@ -753,8 +754,8 @@
     <section class="results-section" id="results-section">
       <div class="container">
         <h2 class="section-title">Your results</h2>
-        <!-- A) FREE PREVIEW — Initial Direction (high-conflict) -->
-        <div class="profile-card free-result-card" id="free-profile">
+        <!-- A) FREE PREVIEW — Quick Direction (generic) or Matched Direction (tailored) -->
+        <div class="profile-card free-result-card initially-hidden" id="free-profile">
           <h3>Initial Direction</h3>
           <p>Based on patterns similar to yours:</p>
           <p>You may not be optimising your electricity usage structure.</p>
@@ -830,10 +831,10 @@
             </form>
           </div>
         </div>
-        <!-- Transition heading to paid layer -->
-        <h3 class="transition-heading" id="transition-heading">Want clearer numbers?</h3>
-        <!-- B) LOCKED CARD (visible when NOT unlocked) -->
-        <div class="locked-box" id="locked-box">
+        <!-- Transition heading to paid layer (shown only after matched result) -->
+        <h3 class="transition-heading initially-hidden" id="transition-heading">Want clearer numbers?</h3>
+        <!-- B) LOCKED CARD (visible when NOT unlocked, shown only after matched result) -->
+        <div class="locked-box initially-hidden" id="locked-box">
           <h2 class="locked-headline">Detailed Savings Projection – $199</h2>
           <p class="locked-intro">(Fully credited if you proceed with Advisory Pro)</p>
           <p class="locked-body">To narrow this estimate, we refine using:</p>
@@ -1180,7 +1181,7 @@
         }
       }
 
-      var heroVariant = 'max_bleeding_money_v1';
+      var heroVariant = 'zf_outcome_first_v1';
       window.addEventListener('load', function() {
         track('page_open', {});
         track('hero_variant_view', { hero_variant: heroVariant });
@@ -1254,19 +1255,23 @@
         track('snapshot_start', {});
       }
       var heroSection = document.getElementById('section-0');
-      var heroStep1Wrap = document.getElementById('hero-step-1-wrap');
-      var heroStep2 = document.getElementById('hero-step-2');
+      var heroOutcomeCta = document.getElementById('hero-outcome-cta');
+      var stickyOutcomeBtn = document.getElementById('sticky-outcome-btn');
       var processingState = document.getElementById('processing-state');
-      var step1Btns = document.querySelectorAll('.hero-step-1 .hero-option-btn');
-      var step2Btns = document.querySelectorAll('.hero-option-btn.step2-btn');
+      var quickOutcomeSection = document.getElementById('quick-outcome-section');
+      var yesMatchBtn = document.getElementById('yes-match-btn');
+      var zfQuestionsSection = document.getElementById('zf-questions-section');
+      var zfQ2Wrap = document.getElementById('zf-q2-wrap');
+      var zfQ1Btns = document.querySelectorAll('.zf-q1-btn');
+      var zfQ2Btns = document.querySelectorAll('.zf-q2-btn');
       var billBand = null;
       var usageTiming = null;
+      var flowStep = 'hero';
 
-      function proceedFromHero() {
-        if (!billBand || !usageTiming) return;
-        track('hero_cta_click', { step: 2, value: usageTiming });
-        track('snapshot_complete', { billBand: billBand, usageTiming: usageTiming });
-        mapColdFlowToFormData(billBand, usageTiming);
+      function handleFirstCta() {
+        if (flowStep !== 'hero') return;
+        flowStep = 'processing';
+        track('form_start', {});
         if (heroSection) heroSection.classList.add('hidden');
         if (processingState) {
           processingState.classList.remove('initially-hidden');
@@ -1274,63 +1279,95 @@
         }
         setTimeout(function() {
           if (processingState) processingState.classList.add('initially-hidden');
-          if (resultsSection) resultsSection.classList.add('visible');
-          var fullEl = document.getElementById('full-result');
-          var lockedEl = document.getElementById('locked-box');
-          if (fullEl) fullEl.classList.add('hidden');
-          if (lockedEl) lockedEl.classList.remove('hidden');
-          document.getElementById('free-profile').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 600);
+          flowStep = 'quick_outcome';
+          if (quickOutcomeSection) {
+            quickOutcomeSection.classList.remove('initially-hidden');
+            quickOutcomeSection.classList.add('visible');
+            quickOutcomeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+          if (typeof updateStickyHelper === 'function') updateStickyHelper();
+        }, 700);
       }
 
-      step1Btns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var value = btn.getAttribute('data-value');
-          if (!value) return;
-          billBand = value;
-          step1Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
-          fireSnapshotStart();
-          track('hero_cta_click', { step: 1, value: value });
-          if (heroStep1Wrap) heroStep1Wrap.classList.add('hidden');
-          if (heroStep2) { heroStep2.classList.add('visible'); heroStep2.classList.remove('hidden'); }
-        });
-      });
+      if (heroOutcomeCta) heroOutcomeCta.addEventListener('click', handleFirstCta);
+      if (stickyOutcomeBtn) stickyOutcomeBtn.addEventListener('click', handleFirstCta);
 
-      step2Btns.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var value = btn.getAttribute('data-value');
-          if (!value) return;
-          usageTiming = value;
-          step2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
-          var ctaBtn = document.getElementById('hero-cta-btn');
-          if (ctaBtn) ctaBtn.disabled = false;
+      if (yesMatchBtn) {
+        yesMatchBtn.addEventListener('click', function() {
+          if (flowStep !== 'quick_outcome') return;
+          flowStep = 'questions';
+          fireSnapshotStart();
+          track('hero_cta_click', { step: 1, value: 'yes_match' });
+          if (quickOutcomeSection) quickOutcomeSection.classList.add('initially-hidden');
+          if (zfQuestionsSection) {
+            zfQuestionsSection.classList.remove('initially-hidden');
+            zfQuestionsSection.classList.add('visible');
+            zfQuestionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+          track('question_view', { step: 1 });
           if (typeof updateStickyHelper === 'function') updateStickyHelper();
         });
-      });
+      }
 
-      var heroCtaBtn = document.getElementById('hero-cta-btn');
-      if (heroCtaBtn) {
-        heroCtaBtn.disabled = true;
-        heroCtaBtn.addEventListener('click', function() {
-          if (!billBand || !usageTiming) return;
-          proceedFromHero();
+      if (zfQ1Btns.length) {
+        zfQ1Btns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var value = btn.getAttribute('data-value');
+            if (!value) return;
+            billBand = value;
+            zfQ1Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
+            track('question_answer', { step: 1, question: 'quarterlyBill', value: value });
+            if (zfQ2Wrap) {
+              zfQ2Wrap.classList.remove('initially-hidden');
+              zfQ2Wrap.classList.add('visible');
+            }
+            track('question_view', { step: 2 });
+          });
         });
+      }
+
+      if (zfQ2Btns.length) {
+        zfQ2Btns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var value = btn.getAttribute('data-value');
+            if (!value) return;
+            usageTiming = value;
+            zfQ2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
+            track('question_answer', { step: 2, question: 'usageTiming', value: value });
+            track('snapshot_complete', { billBand: billBand, usageTiming: usageTiming });
+            mapColdFlowToFormData(billBand, usageTiming);
+            flowStep = 'matched_result';
+            if (zfQuestionsSection) zfQuestionsSection.classList.add('initially-hidden');
+            showMatchedResult();
+          });
+        });
+      }
+
+      function showMatchedResult() {
+        if (!resultsSection) return;
+        resultsSection.classList.add('visible');
+        var freeProfile = document.getElementById('free-profile');
+        var transitionHeading = document.getElementById('transition-heading');
+        var lockedBox = document.getElementById('locked-box');
+        if (freeProfile) {
+          var solarText = usageTiming === 'day' ? 'Solar: likely helpful — your daytime usage aligns well.' : usageTiming === 'night' ? 'Solar: less impactful — night usage limits self-consumption.' : 'Solar: worth exploring — timing matters more than most realise.';
+          var batteryText = usageTiming === 'day' ? 'Battery: outcomes depend on evening load — worth testing.' : usageTiming === 'night' ? 'Battery: more relevant — night usage shifts savings potential.' : 'Battery: highly sensitive to load pattern — get it right.';
+          freeProfile.innerHTML = '<h3>Matched Direction</h3><p>Based on your answers:</p><p>' + solarText + '</p><p>' + batteryText + '</p><p class="free-result-cta">Before investing $15,000–$30,000,<br>most homeowners never test this properly.</p><p class="free-result-range">Typical households like yours see:</p><p class="usage-band free-result-impact">$600–$1,400 annual impact.</p><p class="free-result-upgrade">The difference depends heavily on configuration.</p>';
+          freeProfile.classList.remove('initially-hidden');
+        }
+        if (transitionHeading) transitionHeading.classList.remove('initially-hidden');
+        if (lockedBox) lockedBox.classList.remove('initially-hidden');
+        var fp = document.getElementById('free-profile');
+        if (fp) fp.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
       var stickyHelper = document.getElementById('sticky-helper');
-      var stickyBackBtn = document.getElementById('sticky-back-btn');
-      if (stickyBackBtn && heroSection) {
-        stickyBackBtn.addEventListener('click', function() {
-          heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      }
       function updateStickyHelper() {
         if (!stickyHelper || !heroSection) return;
         var isMobile = window.innerWidth < 601;
         var heroHidden = heroSection.classList.contains('hidden');
-        var notAnswered = !billBand || !usageTiming;
         var pastHero = window.scrollY > window.innerHeight * 0.6;
-        if (isMobile && !heroHidden && notAnswered && pastHero) {
+        if (isMobile && heroHidden === false && flowStep === 'hero' && pastHero) {
           stickyHelper.classList.add('visible');
         } else {
           stickyHelper.classList.remove('visible');
