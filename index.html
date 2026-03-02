@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <!--
-  Upgrade Validation Tool v1 – targeting 25–34 homeowners.
-  CHANGELOG: Redesign into Upgrade Validation Tool experience. Hero click + form_start lift.
-  - Hero: H1 "Upgrading to solar or a battery?", sub "Check if your usage pattern actually justifies it.", CTA "Run the upgrade check", reassurance "Independent. No installation sales." No price, no emotional language. hero_variant: upgrade_validation_v1.
-  - Flow: CTA → form_start → processing "Analysing typical household upgrade patterns…" → Upgrade Fit Overview → "Match to my usage" → Q1 + Q2 → Your Likely Upgrade Fit (matched) + $600–$1,400 → paid layer. State: hero | overview | questions | matched_result.
-  - Q1 options: Under $600, $600–$1,200, $1,200–$2,000, $2,000+ → map to annualBillBand.
-  - Q2 options: Mostly daytime, Mostly night, Not sure → map to daytimeAtHome.
+  Tap-first hero v1 to lift form_start.
+  CHANGELOG: Tap-first hero — first tap (bill band) is the ONLY form_start trigger. No CTA.
+  - Hero: H1 "Is your power bill getting out of hand?", sub "Tap once. Get a quick direction instantly.", single question + 4 big buttons (Under $600 … $2,000+). Buttons above fold, full-width mobile. hero_variant: tap_first_billBand_v1.
+  - On first tap: form_start + question_answer, show Quick direction (free) + Q2. State: hero | q2 | result.
+  - Q2: "When do you use most electricity?" → question_answer, then Your likely direction + $600–$1,400. Progress Step 1 of 2 / Step 2 of 2. "Change answer" scrolls to hero.
+  - Paid layer only after matched result. Want the real numbers? Detailed Projection – $199. Unlock my projection.
   - Previous: Direct-interaction hero → 2-minute check → free preview → paid unlock → full result.
   - SECTION 1: Multi-step form (Step 2+) shown after hero selection; inline errors on Next when required missing; progress Step X of Y; on complete scroll to results.
   - SECTION 3: (A) Free preview: usage band + brief Assumptions (preview) accordion, bridge sentence only — no savings/payback. (B) Locked card: "See your estimated annual savings" with blurred placeholders; Unlock opens "Payment coming next" modal; on close → render full result. (C) Full result: 7-block report when unlocked (URL ?unlocked=1 or localStorage lite_unlocked).
@@ -199,6 +199,19 @@
     .hero-cta-btn:hover { background: #ff2a2d; transform: scale(1.02); }
     .hero-tool .hero-cta-btn { background: var(--accent); box-shadow: 0 2px 12px rgba(13,110,253,.3); }
     .hero-tool .hero-cta-btn:hover { background: var(--accent-hover); }
+    /* Tap-first hero */
+    .tap-progress { font-size: 0.8125rem; color: rgba(255,255,255,0.85); margin: 0 0 1rem; }
+    .tap-progress-inline { color: var(--muted); margin-bottom: 0.75rem; }
+    .tap-hero-buttons { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 360px; margin-top: 1.25rem; }
+    .tap-hero-buttons .tap-bill-btn { width: 100%; min-height: 56px; font-size: 1.0625rem; }
+    .tap-q2-section { padding: 2rem 0; }
+    .tap-q2-card { background: var(--card); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); margin-top: 1rem; }
+    .tap-q2-card .hero-q { color: var(--text); }
+    .tap-q2-card .hero-option-btn { min-height: 52px; background: rgba(13,110,253,0.1); border-color: var(--accent); color: var(--accent); }
+    .tap-q2-card .hero-option-btn:hover, .tap-q2-card .hero-option-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .change-answer-wrap { margin: 1rem 0 0; }
+    .change-answer-link { font-size: 0.875rem; color: var(--muted); }
+    .change-answer-link:hover { color: var(--accent); }
     .hero-cta-btn:disabled { opacity: 0.6; cursor: not-allowed; animation: none; }
     @keyframes hero-cta-pulse { 0%, 100% { box-shadow: 0 6px 20px rgba(255,77,79,0.4); } 50% { box-shadow: 0 8px 28px rgba(255,77,79,0.55); } }
     .initially-hidden { display: none !important; }
@@ -222,7 +235,8 @@
       .hero-option-btn { width: 100%; }
     }
     @media (min-width: 520px) {
-      .zf-q1, .zf-q2-wrap .hero-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+      .tap-hero-buttons { display: grid; grid-template-columns: repeat(2, 1fr); max-width: 480px; }
+      .tap-q2-card .hero-options { display: grid; grid-template-columns: repeat(2, 1fr); }
     }
     .section {
       padding: 2rem 0;
@@ -576,64 +590,47 @@
   </style>
 </head>
 <body>
-  <!-- Sticky helper — mobile only, when user scrolls before first CTA -->
-  <div class="sticky-helper" id="sticky-helper">
-    <span class="sticky-helper-text">Run the upgrade check</span>
-    <button type="button" class="btn" id="sticky-outcome-btn">Run check</button>
-  </div>
   <main>
-    <!-- Hero — Upgrade Validation Tool -->
-    <section class="hero hero-tool" id="section-0">
+    <!-- Hero — Tap-first: question + big buttons only -->
+    <section class="hero hero-tap-first" id="section-0">
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <h1 id="hero-h1">Upgrading to solar or a battery?</h1>
-        <p class="hero-sub">Check if your usage pattern actually justifies it.</p>
-        <button type="button" class="hero-cta-btn" id="hero-outcome-cta">Run the upgrade check</button>
-        <p class="hero-reassurance">Independent. No installation sales.</p>
-      </div>
-    </section>
-
-    <!-- Upgrade Fit Overview (after first CTA) -->
-    <section class="quick-outcome-section initially-hidden" id="quick-outcome-section">
-      <div class="container">
-        <div class="profile-card quick-direction-card uv-overview-card" id="quick-direction-card">
-          <h3>Upgrade Fit Overview</h3>
-          <p>Most homes fall into one of these categories:</p>
-          <ul class="uv-fit-list">
-            <li>Strong solar fit</li>
-            <li>Solar works, battery depends on night load</li>
-            <li>Low financial optimisation</li>
-          </ul>
-          <button type="button" class="btn hero-cta-btn" id="yes-match-btn">Match to my usage</button>
+        <p class="tap-progress" id="hero-progress">Step 1 of 2</p>
+        <h1 id="hero-h1">Is your power bill getting out of hand?</h1>
+        <p class="hero-sub">Tap once. Get a quick direction instantly.</p>
+        <h2 class="hero-q">What's your typical quarterly electricity bill?</h2>
+        <div class="hero-options tap-hero-buttons" role="group" aria-label="Quarterly bill" id="tap-hero-buttons">
+          <button type="button" class="hero-option-btn tap-bill-btn" data-value="under_600">Under $600</button>
+          <button type="button" class="hero-option-btn tap-bill-btn" data-value="600_1200">$600–$1,200</button>
+          <button type="button" class="hero-option-btn tap-bill-btn" data-value="1200_2000">$1,200–$2,000</button>
+          <button type="button" class="hero-option-btn tap-bill-btn" data-value="2000_plus">$2,000+</button>
         </div>
       </div>
     </section>
 
-    <!-- Questions (Q1 + Q2) — revealed after Match to my usage -->
-    <section class="zf-questions-section initially-hidden" id="zf-questions-section">
+    <!-- After first tap: Quick direction (free) + Q2 -->
+    <section class="tap-q2-section initially-hidden" id="tap-q2-section">
       <div class="container">
-        <div class="zf-questions-card">
-          <h2 class="hero-q" id="zf-q1-label">What is your average quarterly electricity bill?</h2>
-          <div class="hero-options zf-q1" role="group" aria-label="Quarterly bill" id="zf-q1">
-            <button type="button" class="hero-option-btn zf-q1-btn" data-value="under_600">Under $600</button>
-            <button type="button" class="hero-option-btn zf-q1-btn" data-value="600_1200">$600–$1,200</button>
-            <button type="button" class="hero-option-btn zf-q1-btn" data-value="1200_2000">$1,200–$2,000</button>
-            <button type="button" class="hero-option-btn zf-q1-btn" data-value="2000_plus">$2,000+</button>
-          </div>
-          <div class="zf-q2-wrap initially-hidden" id="zf-q2-wrap">
-            <h2 class="hero-q">When do you use most electricity?</h2>
-            <div class="hero-options" role="group" aria-label="Usage timing" id="zf-q2">
-              <button type="button" class="hero-option-btn zf-q2-btn" data-value="day">Mostly daytime</button>
-              <button type="button" class="hero-option-btn zf-q2-btn" data-value="night">Mostly night</button>
-              <button type="button" class="hero-option-btn zf-q2-btn" data-value="unsure">Not sure</button>
-            </div>
+        <p class="tap-progress tap-progress-inline">Step 2 of 2</p>
+        <div class="profile-card quick-direction-card" id="quick-direction-card">
+          <h3>Quick direction (free)</h3>
+          <p id="quick-dir-solar">Solar: likely helpful if daytime usage is strong.</p>
+          <p id="quick-dir-battery">Battery: depends heavily on night usage.</p>
+          <p class="change-answer-wrap"><a href="#section-0" class="change-answer-link" id="change-answer-link">Change answer</a></p>
+        </div>
+        <div class="tap-q2-card">
+          <h2 class="hero-q">When do you use most electricity?</h2>
+          <div class="hero-options" role="group" aria-label="Usage timing" id="tap-q2-buttons">
+            <button type="button" class="hero-option-btn tap-q2-btn" data-value="day">Mostly daytime</button>
+            <button type="button" class="hero-option-btn tap-q2-btn" data-value="night">Mostly night</button>
+            <button type="button" class="hero-option-btn tap-q2-btn" data-value="unsure">Not sure</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Processing state (0.6–0.8s) -->
-    <section id="processing-state" class="initially-hidden processing-state">
+    <!-- Processing state (unused in tap-first; keep for compatibility) -->
+    <section id="processing-state" class="initially-hidden processing-state" aria-hidden="true">
       <div class="container">
         <p class="processing-text" id="processing-text">Analysing typical household upgrade patterns…</p>
       </div>
@@ -839,18 +836,18 @@
           </div>
         </div>
         <!-- Transition heading to paid layer (shown only after matched result) -->
-        <h3 class="transition-heading initially-hidden" id="transition-heading">Want the actual numbers?</h3>
+        <h3 class="transition-heading initially-hidden" id="transition-heading">Want the real numbers?</h3>
         <!-- B) LOCKED CARD (visible when NOT unlocked, shown only after matched result) -->
         <div class="locked-box initially-hidden" id="locked-box">
           <h2 class="locked-headline">Detailed Projection – $199</h2>
-          <p class="locked-intro">(Fully credited if you proceed with Advisory Pro)</p>
+          <p class="locked-intro">(Credited if you proceed with Advisory Pro)</p>
           <p class="locked-body">You'll receive:</p>
           <ul class="locked-list">
-            <li>Estimated annual savings (narrowed range)</li>
-            <li>5-year impact projection</li>
+            <li>Narrowed annual savings range</li>
+            <li>5-year impact</li>
             <li>Battery payback window</li>
-            <li>Backup realism assessment</li>
-            <li>Clear suitability statement</li>
+            <li>Backup reality check</li>
+            <li>Clear recommendation</li>
           </ul>
           <div class="locked-cta-wrap">
             <button type="button" class="btn" id="unlock-btn">Unlock my projection</button>
@@ -1166,7 +1163,7 @@
         }
       }
 
-      var heroVariant = 'upgrade_validation_v1';
+      var heroVariant = 'tap_first_billBand_v1';
       window.addEventListener('load', function() {
         track('page_open', {});
         track('hero_variant_view', { hero_variant: heroVariant });
@@ -1240,89 +1237,67 @@
         track('snapshot_start', {});
       }
       var heroSection = document.getElementById('section-0');
-      var heroOutcomeCta = document.getElementById('hero-outcome-cta');
-      var stickyOutcomeBtn = document.getElementById('sticky-outcome-btn');
-      var processingState = document.getElementById('processing-state');
-      var quickOutcomeSection = document.getElementById('quick-outcome-section');
-      var yesMatchBtn = document.getElementById('yes-match-btn');
-      var zfQuestionsSection = document.getElementById('zf-questions-section');
-      var zfQ2Wrap = document.getElementById('zf-q2-wrap');
-      var zfQ1Btns = document.querySelectorAll('.zf-q1-btn');
-      var zfQ2Btns = document.querySelectorAll('.zf-q2-btn');
+      var tapQ2Section = document.getElementById('tap-q2-section');
+      var tapBillBtns = document.querySelectorAll('.tap-bill-btn');
+      var tapQ2Btns = document.querySelectorAll('.tap-q2-btn');
+      var changeAnswerLink = document.getElementById('change-answer-link');
+      var quickDirSolar = document.getElementById('quick-dir-solar');
+      var quickDirBattery = document.getElementById('quick-dir-battery');
       var billBand = null;
       var usageTiming = null;
       var flowStep = 'hero';
+      var formStartFired = false;
 
-      function handleFirstCta() {
-        if (flowStep !== 'hero') return;
-        flowStep = 'processing';
-        track('form_start', {});
-        if (heroSection) heroSection.classList.add('hidden');
-        if (processingState) {
-          processingState.classList.remove('initially-hidden');
-          processingState.classList.add('visible');
-        }
-        setTimeout(function() {
-          if (processingState) processingState.classList.add('initially-hidden');
-          flowStep = 'overview';
-          if (quickOutcomeSection) {
-            quickOutcomeSection.classList.remove('initially-hidden');
-            quickOutcomeSection.classList.add('visible');
-            quickOutcomeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-          if (typeof updateStickyHelper === 'function') updateStickyHelper();
-        }, 700);
+      function updateQuickDirectionText() {
+        if (!quickDirSolar || !quickDirBattery) return;
+        quickDirSolar.textContent = 'Solar: likely helpful if daytime usage is strong.';
+        quickDirBattery.textContent = 'Battery: depends heavily on night usage.';
       }
 
-      if (heroOutcomeCta) heroOutcomeCta.addEventListener('click', handleFirstCta);
-      if (stickyOutcomeBtn) stickyOutcomeBtn.addEventListener('click', handleFirstCta);
-
-      if (yesMatchBtn) {
-        yesMatchBtn.addEventListener('click', function() {
-          if (flowStep !== 'overview') return;
-          flowStep = 'questions';
-          fireSnapshotStart();
-          track('hero_cta_click', { step: 1, value: 'yes_match' });
-          if (quickOutcomeSection) quickOutcomeSection.classList.add('initially-hidden');
-          if (zfQuestionsSection) {
-            zfQuestionsSection.classList.remove('initially-hidden');
-            zfQuestionsSection.classList.add('visible');
-            zfQuestionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-          track('question_view', { step: 1 });
-          if (typeof updateStickyHelper === 'function') updateStickyHelper();
-        });
-      }
-
-      if (zfQ1Btns.length) {
-        zfQ1Btns.forEach(function(btn) {
+      if (tapBillBtns.length) {
+        tapBillBtns.forEach(function(btn) {
           btn.addEventListener('click', function() {
             var value = btn.getAttribute('data-value');
             if (!value) return;
-            billBand = value;
-            zfQ1Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
-            track('question_answer', { step: 1, question: 'quarterlyBill', value: value });
-            if (zfQ2Wrap) {
-              zfQ2Wrap.classList.remove('initially-hidden');
-              zfQ2Wrap.classList.add('visible');
+            if (!formStartFired) {
+              formStartFired = true;
+              track('form_start', {});
+              fireSnapshotStart();
             }
+            track('question_answer', { step: 1, question: 'quarterlyBill', value: value });
+            billBand = value;
+            tapBillBtns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
+            flowStep = 'q2';
+            updateQuickDirectionText();
             track('question_view', { step: 2 });
+            if (tapQ2Section) {
+              tapQ2Section.classList.remove('initially-hidden');
+              tapQ2Section.classList.add('visible');
+              tapQ2Section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           });
         });
       }
 
-      if (zfQ2Btns.length) {
-        zfQ2Btns.forEach(function(btn) {
+      if (changeAnswerLink) {
+        changeAnswerLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (heroSection) heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      if (tapQ2Btns.length) {
+        tapQ2Btns.forEach(function(btn) {
           btn.addEventListener('click', function() {
             var value = btn.getAttribute('data-value');
             if (!value) return;
             usageTiming = value;
-            zfQ2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
+            tapQ2Btns.forEach(function(b) { b.classList.toggle('selected', b === btn); });
             track('question_answer', { step: 2, question: 'usageTiming', value: value });
             track('snapshot_complete', { billBand: billBand, usageTiming: usageTiming });
             mapColdFlowToFormData(billBand, usageTiming);
-            flowStep = 'matched_result';
-            if (zfQuestionsSection) zfQuestionsSection.classList.add('initially-hidden');
+            flowStep = 'result';
+            if (tapQ2Section) tapQ2Section.classList.add('initially-hidden');
             showMatchedResult();
           });
         });
@@ -1335,9 +1310,9 @@
         var transitionHeading = document.getElementById('transition-heading');
         var lockedBox = document.getElementById('locked-box');
         if (freeProfile) {
-          var solarText = usageTiming === 'day' ? 'Solar: likely beneficial' : usageTiming === 'night' ? 'Solar: likely beneficial with tariff shift' : 'Solar: likely beneficial — worth testing';
-          var batteryText = usageTiming === 'day' ? 'Battery: moderate ROI sensitivity' : usageTiming === 'night' ? 'Battery: higher ROI potential' : 'Battery: moderate ROI sensitivity';
-          freeProfile.innerHTML = '<h3>Your Likely Upgrade Fit</h3><p>' + solarText + '</p><p>' + batteryText + '</p><p class="free-result-range">Typical households like yours see:</p><p class="usage-band free-result-impact">$600–$1,400 annual impact.</p>';
+          var solarText = usageTiming === 'day' ? 'Solar: likely beneficial' : usageTiming === 'night' ? 'Solar: depends' : 'Solar: likely beneficial';
+          var batteryText = usageTiming === 'day' ? 'Battery: potential' : usageTiming === 'night' ? 'Battery: potential' : 'Battery: depends';
+          freeProfile.innerHTML = '<h3>Your likely direction</h3><p>' + solarText + '</p><p>' + batteryText + '</p><p class="free-result-range">Typical households like yours often see:</p><p class="usage-band free-result-impact">$600–$1,400 annual impact</p>';
           freeProfile.classList.remove('initially-hidden');
         }
         if (transitionHeading) transitionHeading.classList.remove('initially-hidden');
@@ -1345,21 +1320,6 @@
         var fp = document.getElementById('free-profile');
         if (fp) fp.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-
-      var stickyHelper = document.getElementById('sticky-helper');
-      function updateStickyHelper() {
-        if (!stickyHelper || !heroSection) return;
-        var isMobile = window.innerWidth < 601;
-        var heroHidden = heroSection.classList.contains('hidden');
-        var pastHero = window.scrollY > window.innerHeight * 0.6;
-        if (isMobile && heroHidden === false && flowStep === 'hero' && pastHero) {
-          stickyHelper.classList.add('visible');
-        } else {
-          stickyHelper.classList.remove('visible');
-        }
-      }
-      window.addEventListener('scroll', updateStickyHelper);
-      window.addEventListener('resize', updateStickyHelper);
 
       function showStepError(step, show) {
         var err = document.getElementById('error-' + step);
