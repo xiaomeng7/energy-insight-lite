@@ -26,10 +26,9 @@ export const handler: Handler = async (event: HandlerEvent) => {
   } catch {
     return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Invalid JSON" }) };
   }
+  // Email is optional: when empty, Stripe Checkout will collect it during payment. Do NOT reject.
   const email = typeof body.email === "string" ? body.email.trim() : "";
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Valid email is required" }) };
-  }
+  const hasValidEmail = !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
   const liteSnapshot = body.liteSnapshot != null ? JSON.stringify(body.liteSnapshot) : "{}";
@@ -38,15 +37,19 @@ export const handler: Handler = async (event: HandlerEvent) => {
   const lineItems: Stripe.Checkout.SessionCreateParams["line_items"] = priceId
     ? [{ price: priceId, quantity: 1 }]
     : [{ price_data: { currency: LITE_CURRENCY, unit_amount: LITE_AMOUNT_CENTS, product_data: { name: "Energy Decision Tool - Full Result Unlock" } }, quantity: 1 }];
-  const session = await stripe.checkout.sessions.create({
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     line_items: lineItems,
     success_url: liteSiteUrl + "/?checkout=success&session_id={CHECKOUT_SESSION_ID}",
     cancel_url: liteSiteUrl + "/?checkout=cancel",
-    customer_email: email,
-    metadata: { source: "lite_paid", email, lite_snapshot_hash: hashSnapshot(liteSnapshot) },
-  });
+    metadata: { source: "lite_paid", lite_snapshot_hash: hashSnapshot(liteSnapshot) },
+  };
+  if (hasValidEmail) {
+    sessionParams.customer_email = email;
+    sessionParams.metadata = { ...sessionParams.metadata, email };
+  }
+  const session = await stripe.checkout.sessions.create(sessionParams);
   const sql = neon(dbUrl);
-  await sql`INSERT INTO advisory_applications (name, mobile, email, suburb, property_type, solar_battery_status, bill_range, contact_time, source, payment_status, lite_snapshot, stripe_checkout_session_id, credit_amount) VALUES (${name || ""}, ${phone || ""}, ${email}, NULL, NULL, NULL, NULL, NULL, 'lite_paid', 'pending', ${liteSnapshot}, ${session.id}, ${LITE_AMOUNT_CENTS})`;
+  await sql`INSERT INTO advisory_applications (name, mobile, email, suburb, property_type, solar_battery_status, bill_range, contact_time, source, payment_status, lite_snapshot, stripe_checkout_session_id, credit_amount) VALUES (${name || ""}, ${phone || ""}, ${hasValidEmail ? email : ""}, NULL, NULL, NULL, NULL, NULL, 'lite_paid', 'pending', ${liteSnapshot}, ${session.id}, ${LITE_AMOUNT_CENTS})`;
   return { statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: session.url }) };
 };
